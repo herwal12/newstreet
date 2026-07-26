@@ -18,7 +18,6 @@
             position: relative;
         }
 
-        /* Même bannière en fond que l'accueil */
         .bg-banner {
             position: absolute;
             top: 0;
@@ -41,7 +40,6 @@
             pointer-events: none;
         }
 
-        /* Barre de navigation supérieure */
         nav {
             position: absolute;
             top: 0;
@@ -98,7 +96,6 @@
             text-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
         }
 
-        /* Contenu Principal */
         .main-wrapper {
             flex: 1;
             display: flex;
@@ -157,7 +154,6 @@
             line-height: 1.5;
         }
 
-        /* Grille des 5 postes */
         .jobs-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -206,9 +202,9 @@
             text-decoration: none;
             transition: all 0.3s ease;
             cursor: pointer;
+            border: none;
         }
 
-        /* État Ouvert / Fermé */
         .btn-open {
             background: rgba(16, 185, 129, 0.15);
             color: #34d399;
@@ -227,7 +223,119 @@
             cursor: not-allowed;
         }
 
-        /* Widget de musique flottant */
+        /* Fenêtre Modale du Formulaire */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .modal-content {
+            background: #0b0f19;
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: 20px;
+            max-width: 650px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            color: white;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover { color: white; }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #d1d5db;
+            margin-bottom: 8px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            background: rgba(17, 24, 39, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: #8b5cf6;
+        }
+
+        .form-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #a78bfa;
+            margin: 25px 0 15px 0;
+            border-left: 3px solid #8b5cf6;
+            padding-left: 10px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        /* Widget de musique */
         .music-widget {
             position: fixed;
             bottom: 25px;
@@ -306,7 +414,6 @@
 
     <div class="bg-banner"></div>
 
-    <!-- Barre de Navigation avec Logo à gauche -->
     <nav>
         <a href="/" class="nav-brand">
             <img src="https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png?ex=6a67c76a&is=6a6675ea&hm=692140dcde62bd6e8dad05a69b7a8bb750a15266e7aa4d00749a3830e6ac4ada&=&format=webp&quality=lossless&width=1216&height=1216" alt="Logo" class="nav-logo">
@@ -318,7 +425,6 @@
         </div>
     </nav>
 
-    <!-- Conteneur central des 5 postes -->
     <div class="main-wrapper">
         <div class="recruitment-container">
             <div class="recruitment-header">
@@ -334,27 +440,27 @@
                 <div class="job-card">
                     <div class="job-info">
                         <h3>Gérant Légal</h3>
-                        <p>Superviser et gérer les entreprises et factions légales du serveur (LSPD, EMS, etc.).</p>
+                        <p>Superviser et gérer les entreprises et factions légales du serveur.</p>
                     </div>
-                    <a href="#" class="btn-apply btn-open">Recrutement ouvert — postuler</a>
+                    <button class="btn-apply btn-open" onclick="openModal('modal-legal')">Postuler</button>
                 </div>
 
                 <!-- 2. Gérant Illégal -->
                 <div class="job-card">
                     <div class="job-info">
                         <h3>Gérant Illégal</h3>
-                        <p>Encadrer les organisations criminelles, gérer les territoires et veiller à l'équilibrage de l'illégal.</p>
+                        <p>Encadrer les organisations criminelles et veiller à l'équilibrage.</p>
                     </div>
-                    <a href="#" class="btn-apply btn-open">Recrutement ouvert — postuler</a>
+                    <button class="btn-apply btn-open" onclick="openModal('modal-illegal')">Postuler</button>
                 </div>
 
                 <!-- 3. Community Manager -->
                 <div class="job-card">
                     <div class="job-info">
                         <h3>Community Manager</h3>
-                        <p>Animer les réseaux sociaux (TikTok/YouTube/Twitter) et dynamiser la communauté.</p>
+                        <p>Animer les réseaux sociaux (TikTok/YouTube) et dynamiser la commu.</p>
                     </div>
-                    <a href="#" class="btn-apply btn-closed">Recrutement fermé</a>
+                    <button class="btn-apply btn-closed" disabled>Recrutement fermé</button>
                 </div>
 
                 <!-- 4. Modération -->
@@ -363,22 +469,136 @@
                         <h3>Modération</h3>
                         <p>Veiller au bon déroulement du serveur en jeu et sur Discord, gérer les tickets.</p>
                     </div>
-                    <a href="#" class="btn-apply btn-open">Recrutement ouvert — postuler</a>
+                    <button class="btn-apply btn-open" onclick="openModal('modal-moderation')">Postuler</button>
                 </div>
 
                 <!-- 5. Développeur -->
                 <div class="job-card">
                     <div class="job-info">
                         <h3>Développeur</h3>
-                        <p>Créer, optimiser et configurer les scripts pour améliorer l'expérience de jeu globale.</p>
+                        <p>Créer, optimiser et configurer les scripts pour le serveur.</p>
                     </div>
-                    <a href="#" class="btn-apply btn-open">Recrutement ouvert — postuler</a>
+                    <button class="btn-apply btn-open" onclick="openModal('modal-dev')">Postuler</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Lecteur de musique discret -->
+    <!-- MODALE MODÉRATION (Avec tes questions exactes) -->
+    <div class="modal-overlay" id="modal-moderation">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler au poste de Modérateur</h3>
+                <button class="close-modal" onclick="closeModal('modal-moderation')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Modération">
+                
+                <div class="form-section-title">Informations Discord</div>
+                <div class="form-group">
+                    <label>Identifiant Discord :</label>
+                    <input type="text" name="discord_id" required placeholder="Ex: 123456789012345678">
+                </div>
+                <div class="form-group">
+                    <label>Nom Discord :</label>
+                    <input type="text" name="discord_name" required placeholder="Ex: pseudo#0000">
+                </div>
+
+                <div class="form-section-title">Partie HRP</div>
+                <div class="form-group">
+                    <label>Nom :</label>
+                    <input type="text" name="nom" required>
+                </div>
+                <div class="form-group">
+                    <label>Prénom :</label>
+                    <input type="text" name="prenom" required>
+                </div>
+                <div class="form-group">
+                    <label>Age :</label>
+                    <input type="number" name="age" required>
+                </div>
+
+                <div class="form-section-title">Partie Motivation</div>
+                <div class="form-group">
+                    <label>Pourquoi vous et pas un autre ?</label>
+                    <textarea name="motivation_1" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Quelles sont vos compétences en modération ?</label>
+                    <textarea name="motivation_2" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Quel est le rôle d'un modérateur ?</label>
+                    <textarea name="motivation_3" rows="3" required></textarea>
+                </div>
+
+                <div class="form-section-title">Mise en situation</div>
+                <div class="form-group">
+                    <label>Un modérateur abuse de ses permissions devant vous, que faites-vous ?</label>
+                    <textarea name="sit_1" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Un joueur freekill à plusieurs reprises devant vous, mais vous n'êtes pas en staff, que faites-vous ?</label>
+                    <textarea name="sit_2" rows="3" required></textarea>
+                </div>
+
+                <div class="form-section-title">Conclusion</div>
+                <div class="form-group">
+                    <label>Un dernier mot à dire ?</label>
+                    <textarea name="conclusion" rows="2"></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALES POUR LES AUTRES POSTES (Structure similaire rapide) -->
+    <div class="modal-overlay" id="modal-legal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler : Gérant Légal</h3>
+                <button class="close-modal" onclick="closeModal('modal-legal')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Gerant Legal">
+                <div class="form-group"><label>Nom Discord :</label><input type="text" name="discord_name" required></div>
+                <div class="form-group"><label>Vos motivations pour le Légal :</label><textarea name="motivation" rows="4" required></textarea></div>
+                <button type="submit" class="btn-submit">Envoyer</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-illegal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler : Gérant Illégal</h3>
+                <button class="close-modal" onclick="closeModal('modal-illegal')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Gerant Illegal">
+                <div class="form-group"><label>Nom Discord :</label><input type="text" name="discord_name" required></div>
+                <div class="form-group"><label>Vos motivations pour l'Illégal :</label><textarea name="motivation" rows="4" required></textarea></div>
+                <button type="submit" class="btn-submit">Envoyer</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-dev">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler : Développeur</h3>
+                <button class="close-modal" onclick="closeModal('modal-dev')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Developpeur">
+                <div class="form-group"><label>Nom Discord :</label><input type="text" name="discord_name" required></div>
+                <div class="form-group"><label>Vos compétences en développement (Lua, JS...) :</label><textarea name="motivation" rows="4" required></textarea></div>
+                <button type="submit" class="btn-submit">Envoyer</button>
+            </form>
+        </div>
+    </div>
+
     <div class="music-widget">
         <div class="music-player-box" id="playerBox">
             <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/5kfAx6phDHPpz5g8IAPyc2?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
@@ -397,6 +617,14 @@
         function togglePlayer() {
             const box = document.getElementById('playerBox');
             box.classList.toggle('active');
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
         }
     </script>
 
