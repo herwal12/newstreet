@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urgence Lilloise • Accueil</title>
+    <!-- Tailwind CSS pour un design propre et rapide -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0b0c10;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+        .hero-bg {
+            background: linear-gradient(to bottom, rgba(11, 12, 16, 0.3), rgba(11, 12, 16, 0.95), #0b0c10), 
+                        url('https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png?ex=6a67c76a&is=6a6675ea&hm=3b1ce7eaef124e053bdf9ede7ac4079a1a691f923267191976f2f13a7fb9f596&=&format=webp&quality=lossless');
+            background-size: cover;
+            background-position: center;
+        }
+        /* Style des cartes métiers */
+        .job-card {
+            background: rgba(20, 22, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .job-card:hover {
+            border-color: #e52d48;
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="w-full flex items-center justify-between px-8 py-5 border-b border-white/10 bg-[#0b0c10]/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="flex items-center space-x-3">
+            <span class="bg-[#e52d48] text-white px-2 py-1 rounded font-bold text-sm tracking-wider">UL</span>
+            <span class="font-extrabold text-lg tracking-wider">URGENCE LILLOISE <span class="text-[#e52d48] text-xs font-semibold px-2 py-0.5 bg-[#e52d48]/20 rounded ml-1">SEMI FIVEPD</span></span>
+        </div>
+        <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+            <a href="/" class="text-[#e52d48] border-b-2 border-[#e52d48] pb-1">Accueil</a>
+            <a href="/recrutement" class="text-gray-300 hover:text-white transition">Recrutement</a>
+            <a href="/boutique" class="text-gray-300 hover:text-white transition">Boutique</a>
+        </nav>
+        <div>
+            <a href="https://discord.gg/HjA3X9pPrU" target="_blank" class="bg-[#5865F2] hover:bg-[#4752C4] text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center space-x-2 transition shadow-lg shadow-[#5865F2]/30">
+                <i class="fa-brands fa-discord"></i>
+                <span>Discord</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION (Bannière principale) -->
+    <main class="flex-grow">
+        <section class="hero-bg px-8 md:px-16 pt-20 pb-32 flex flex-col justify-end min-h-[550px]">
+            <div class="max-w-3xl">
+                <div class="flex items-center space-x-2 text-xs font-bold tracking-widest text-[#e52d48] uppercase mb-2">
+                    <span>— Serveur Roleplay Français</span>
+                </div>
+                <h1 class="text-4xl md:text-6xl font-black tracking-tight leading-tight mb-4">
+                    URGENCE LILLOISE<br>SEMI FIVEPD
+                </h1>
+                <p class="text-gray-300 text-sm md:text-base leading-relaxed mb-8 max-w-xl">
+                    Rejoins une expérience Roleplay unique axée sur les services d'urgence, la gendarmerie et la vie civile dans la métropole lilloise.
+                </p>
+                <div class="flex flex-wrap items-center gap-4">
+                    <!-- Bouton Connexion avec le lien direct -->
+                    <a href="connect https://hb9gq293.gen.addveo.com" class="bg-[#e52d48] hover:bg-[#c8233b] text-white px-6 py-3 rounded-md font-bold text-sm flex items-center space-x-2 transition shadow-lg shadow-[#e52d48]/40">
+                        <i class="fa-solid fa-play"></i>
+                        <span>REJOINDRE LE SERVEUR</span>
+                    </a>
+                    <a href="/reglement" class="bg-white/10 hover:bg-white/20 text-white px-5 py-3 rounded-md font-semibold text-sm backdrop-blur-md transition border border-white/10">
+                        Lire le règlement
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION MÉTIERS & FACTIONS -->
+        <section class="px-8 md:px-16 py-12 max-w-7xl mx-auto">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-xl font-black tracking-wider uppercase text-white/90">Métiers & Factions</h2>
+                <span class="bg-[#e52d48]/20 text-[#e52d48] border border-[#e52d48]/30 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center space-x-1.5">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Visuels en cours de finalisation</span>
+                </span>
+            </div>
+
+            <!-- Grille des cartes -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                
+                <!-- Carte 1 : Police Nationale -->
+                <div class="job-card rounded-xl overflow-hidden shadow-xl flex flex-col justify-between h-72 p-5 relative">
+                    <div class="absolute inset-0 bg-cover bg-center opacity-30 z-0" style="background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png');"></div>
+                    <div class="relative z-10">
+                        <span class="bg-blue-600/80 text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Forces de l'ordre</span>
+                    </div>
+                    <div class="relative z-10 bg-black/60 p-3 rounded-lg backdrop-blur-sm border border-white/5">
+                        <h3 class="font-bold text-lg mb-1">Police Nationale</h3>
+                        <p class="text-xs text-gray-300 leading-snug">Assurez la sécurité en milieu urbain et menez des enquêtes judiciaires.</p>
+                    </div>
+                </div>
+
+                <!-- Carte 2 : Police Municipale -->
+                <div class="job-card rounded-xl overflow-hidden shadow-xl flex flex-col justify-between h-72 p-5 relative">
+                    <div class="absolute inset-0 bg-cover bg-center opacity-30 z-0" style="background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png');"></div>
+                    <div class="relative z-10">
+                        <span class="bg-sky-600/80 text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Proximité</span>
+                    </div>
+                    <div class="relative z-10 bg-black/60 p-3 rounded-lg backdrop-blur-sm border border-white/5">
+                        <h3 class="font-bold text-lg mb-1">Police Municipale</h3>
+                        <p class="text-xs text-gray-300 leading-snug">Veillez au respect de l'ordre public et à la tranquillité des Lillois au quotidien.</p>
+                    </div>
+                </div>
+
+                <!-- Carte 3 : Gendarmerie -->
+                <div class="job-card rounded-xl overflow-hidden shadow-xl flex flex-col justify-between h-72 p-5 relative">
+                    <div class="absolute inset-0 bg-cover bg-center opacity-30 z-0" style="background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png');"></div>
+                    <div class="relative z-10">
+                        <span class="bg-blue-800/80 text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Forces de l'ordre</span>
+                    </div>
+                    <div class="relative z-10 bg-black/60 p-3 rounded-lg backdrop-blur-sm border border-white/5">
+                        <h3 class="font-bold text-lg mb-1">Gendarmerie</h3>
+                        <p class="text-xs text-gray-300 leading-snug">Patrouillez sur les axes routiers et sécurisez l'ensemble du territoire.</p>
+                    </div>
+                </div>
+
+                <!-- Carte 4 : Illégal -->
+                <div class="job-card rounded-xl overflow-hidden shadow-xl flex flex-col justify-between h-72 p-5 relative">
+                    <div class="absolute inset-0 bg-cover bg-center opacity-30 z-0" style="background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png');"></div>
+                    <div class="relative z-10">
+                        <span class="bg-emerald-600/80 text-white text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Illégal</span>
+                    </div>
+                    <div class="relative z-10 bg-black/60 p-3 rounded-lg backdrop-blur-sm border border-white/5">
+                        <h3 class="font-bold text-lg mb-1">Illégal</h3>
+                        <p class="text-xs text-gray-300 leading-snug">Développez vos réseaux clandestins, trafics et arborez hors-la-loi.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full text-center py-6 text-xs text-gray-500 border-t border-white/5">
+        © 2026 Urgence Lilloise. Tous droits réservés. — Made by <span class="text-gray-400 font-medium">ymn_0ffcl</span>
+    </footer>
+
+</body>
+</html>
