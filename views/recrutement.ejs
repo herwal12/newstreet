@@ -22,8 +22,8 @@
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             width: 100%;
-            max-width: 600px;
-            border: 1px: solid #30363d;
+            max-width: 650px;
+            border: 1px solid #30363d;
         }
         h1 {
             text-align: center;
@@ -39,7 +39,34 @@
             font-weight: bold;
             color: #c9d1d9;
         }
-        input, select, textarea {
+        /* Style des carrés de postes */
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .role-card {
+            background-color: #0d1117;
+            border: 2px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: bold;
+            color: #c9d1d9;
+        }
+        .role-card:hover {
+            border-color: #e52d48;
+            background-color: #1a212c;
+        }
+        .role-card.selected {
+            border-color: #e52d48;
+            background-color: #e52d48;
+            color: #ffffff;
+        }
+        input, textarea {
             width: 100%;
             padding: 10px;
             border-radius: 5px;
@@ -49,7 +76,7 @@
             font-size: 14px;
             box-sizing: border-box;
         }
-        input:focus, select:focus, textarea:focus {
+        input:focus, textarea:focus {
             outline: none;
             border-color: #e52d48;
         }
@@ -79,15 +106,17 @@
         
         <form action="/submit-application" method="POST">
             <div class="form-group">
-                <label for="service">Poste souhaité :</label>
-                <select id="service" name="service" required>
-                    <option value="">-- Choisissez un poste --</option>
-                    <option value="Gérant Illégal">Gérant Illégal</option>
-                    <option value="Gérant Légal">Gérant Légal</option>
-                    <option value="Modération">Modération</option>
-                    <option value="Développeur">Développeur</option>
-                    <option value="Community Manager">Community Manager</option>
-                </select>
+                <label>Choisissez votre poste :</label>
+                <!-- Champ caché qui stockera la valeur du poste sélectionné -->
+                <input type="hidden" id="service" name="service" required>
+                
+                <div class="roles-grid">
+                    <div class="role-card" onclick="selectRole(this, 'Gérant Illégal')">Gérant Illégal</div>
+                    <div class="role-card" onclick="selectRole(this, 'Gérant Légal')">Gérant Légal</div>
+                    <div class="role-card" onclick="selectRole(this, 'Modération')">Modération</div>
+                    <div class="role-card" onclick="selectRole(this, 'Développeur')">Développeur</div>
+                    <div class="role-card" onclick="selectRole(this, 'Community Manager')">Community Manager</div>
+                </div>
             </div>
 
             <div class="form-group">
@@ -133,5 +162,18 @@
             <button type="submit" class="btn-submit">Envoyer ma candidature</button>
         </form>
     </div>
+
+    <script>
+        function selectRole(element, roleName) {
+            // Retire la sélection de toutes les cartes
+            document.querySelectorAll('.role-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            // Sélectionne la carte cliquée
+            element.classList.add('selected');
+            // Remplit l'input caché avec le nom du poste
+            document.getElementById('service').value = roleName;
+        }
+    </script>
 </body>
 </html>
