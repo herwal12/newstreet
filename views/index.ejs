@@ -9,6 +9,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background-color: #0b0f19; color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; overflow-x: hidden; }
 
+        /* Header avec ta vraie bannière Discord en arrière-plan */
         .hero-header {
             position: relative;
             height: 45vh;
@@ -17,9 +18,18 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #0b0f19 0%, #151026 50%, #0b0f19 100%);
-            border-bottom: 2px solid rgba(139, 92, 246, 0.2);
             overflow: hidden;
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082376511602/IMG_2079.png?ex=6a67c76a&is=6a6675ea&hm=956b149baa492c3d3c36fee3b6a2493c8fc17e6cda6f3d965a84d8246e4e979a&=&format=webp&quality=lossless');
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            filter: brightness(0.7);
         }
 
         .hero-content {
@@ -32,7 +42,7 @@
             align-items: center;
         }
 
-        /* Ton logo en plein dedans */
+        /* Ton logo rond avec son effet lumineux */
         .server-logo {
             width: 120px;
             height: 120px;
@@ -40,7 +50,7 @@
             object-fit: cover;
             border: 3px solid #8b5cf6;
             box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             animation: floatLogo 3s infinite ease-in-out;
             background: #111827;
         }
@@ -60,6 +70,7 @@
             text-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
+        /* Corps de la page */
         .main-container {
             flex: 1;
             display: flex;
@@ -85,8 +96,10 @@
 <body>
 
     <div class="hero-header">
+        <!-- Bannière Discord en fond -->
+        <div class="hero-bg"></div>
         <div class="hero-content">
-            <!-- Ton lien Discord intégré directement ici -->
+            <!-- Logo Discord -->
             <img src="https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png?ex=6a67c76a&is=6a6675ea&hm=692140dcde62bd6e8dad05a69b7a8bb750a15266e7aa4d00749a3830e6ac4ada&=&format=webp&quality=lossless&width=1216&height=1216" alt="NewStreet Logo" class="server-logo">
             <h1>NewStreet Roleplay</h1>
         </div>
