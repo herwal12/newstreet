@@ -18,7 +18,6 @@
             position: relative;
         }
 
-        /* Intégration subtile et artistique de ton image en fond global */
         .bg-banner {
             position: absolute;
             top: 0;
@@ -28,11 +27,10 @@
             background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png?ex=6a67c76a&is=6a6675ea&hm=3b1ce7eaef124e053bdf9ede7ac4079a1a691f923267191976f2f13a7fb9f596&=&format=webp&quality=lossless');
             background-size: cover;
             background-position: center;
-            opacity: 0.25; /* Transparence pour que ça reste très lisible */
+            opacity: 0.25;
             z-index: 1;
         }
 
-        /* Voile sombre par-dessus pour garder l'ambiance sombre et pro */
         body::after {
             content: '';
             position: absolute;
@@ -164,6 +162,33 @@
             transform: translateY(-3px);
         }
 
+        /* Style du bouton de musique flottant */
+        .music-toggle {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 100;
+            background: rgba(17, 24, 39, 0.85);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .music-toggle:hover {
+            background: rgba(139, 92, 246, 0.2);
+            transform: scale(1.05);
+        }
+
         footer {
             padding: 20px;
             text-align: center;
@@ -177,21 +202,26 @@
 </head>
 <body>
 
-    <!-- Ton image intégrée proprement en arrière-plan -->
     <div class="bg-banner"></div>
+
+    <!-- Élément audio caché (remplace le lien par ton fichier .mp3 si tu en as un) -->
+    <audio id="bg-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
+    </audio>
+
+    <!-- Bouton pour activer/couper la musique -->
+    <button class="music-toggle" onclick="toggleMusic()">
+        🎵 <span id="music-text">Activer la musique</span>
+    </button>
 
     <div class="main-wrapper">
         <div class="hero-card">
-            <!-- Ton Logo -->
             <img src="https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png?ex=6a67c76a&is=6a6675ea&hm=692140dcde62bd6e8dad05a69b7a8bb750a15266e7aa4d00749a3830e6ac4ada&=&format=webp&quality=lossless&width=1216&height=1216" alt="NewStreet Logo" class="server-logo">
             
-            <!-- Titre -->
             <h1>NewStreet Roleplay</h1>
             
-            <!-- Description -->
-            <p>Plonge dans une expérience de jeu unique. Rejoins our communauté, découvre nos nouveautés et lance ton aventure dès maintenant.</p>
+            <p>Plonge dans une expérience de jeu unique. Rejoins notre communauté, découvre nos nouveautés et lance ton aventure dès maintenant.</p>
             
-            <!-- Boutons -->
             <div class="buttons-group">
                 <a href="/recrutement" class="btn btn-primary">Accéder aux recrutements</a>
                 <a href="https://discord.gg/HjA3X9pPrU" target="_blank" class="btn btn-secondary">Rejoindre le Discord</a>
@@ -202,6 +232,24 @@
     <footer>
         &copy; 2026 NewStreet Roleplay. Tous droits réservés.
     </footer>
+
+    <script>
+        const music = document.getElementById('bg-music');
+        const musicText = document.getElementById('music-text');
+        let isPlaying = false;
+
+        function toggleMusic() {
+            if (isPlaying) {
+                music.pause();
+                musicText.innerText = "Activer la musique";
+                isPlaying = false;
+            } else {
+                music.play();
+                musicText.innerText = "Couper la musique";
+                isPlaying = true;
+            }
+        }
+    </script>
 
 </body>
 </html>
