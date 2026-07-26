@@ -3,177 +3,670 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Urgence Lilloise - Recrutement</title>
+    <title>Recrutement - NewStreet Roleplay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f1117;
+            background-color: #070913;
             color: #ffffff;
-            margin: 0;
-            padding: 20px;
+            min-height: 100vh;
             display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .bg-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png?ex=6a67c76a&is=6a6675ea&hm=3b1ce7eaef124e053bdf9ede7ac4079a1a691f923267191976f2f13a7fb9f596&=&format=webp&quality=lossless');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.25;
+            z-index: 1;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, rgba(11, 15, 25, 0.6) 0%, rgba(7, 9, 19, 0.95) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 50px;
+            z-index: 50;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .nav-logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #8b5cf6;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        .nav-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 20px 40px 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .recruitment-container {
+            background: rgba(17, 24, 39, 0.8);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            backdrop-filter: blur(16px);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(139, 92, 246, 0.15);
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .recruitment-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 20px;
+        }
+
+        .header-icon {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: #a78bfa;
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-text h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .header-text p {
+            color: #9ca3af;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .job-card {
+            background: rgba(11, 15, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .job-card:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .job-info h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .job-info p {
+            color: #9ca3af;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .btn-apply {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-open {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-open:hover {
+            background: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-closed {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            cursor: not-allowed;
+        }
+
+        /* Fenêtre Modale */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            padding: 20px;
         }
-        .container {
-            background-color: #161b22;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            width: 100%;
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .modal-content {
+            background: #0b0f19;
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: 20px;
             max-width: 650px;
-            border: 1px solid #30363d;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+            position: relative;
         }
-        h1 {
-            text-align: center;
-            color: #e52d48;
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 15px;
         }
+
+        .modal-header h3 {
+            font-size: 20px;
+            color: white;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover { color: white; }
+
         .form-group {
             margin-bottom: 20px;
         }
-        label {
+
+        .form-group label {
             display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #d1d5db;
             margin-bottom: 8px;
-            font-weight: bold;
-            color: #c9d1d9;
         }
-        /* Style des carrés de postes */
-        .roles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .role-card {
-            background-color: #0d1117;
-            border: 2px solid #30363d;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: bold;
-            color: #c9d1d9;
-        }
-        .role-card:hover {
-            border-color: #e52d48;
-            background-color: #1a212c;
-        }
-        .role-card.selected {
-            border-color: #e52d48;
-            background-color: #e52d48;
-            color: #ffffff;
-        }
-        input, textarea {
+
+        .form-group input, .form-group textarea {
             width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #30363d;
-            background-color: #0d1117;
-            color: #fff;
+            background: rgba(17, 24, 39, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
             font-size: 14px;
-            box-sizing: border-box;
-        }
-        input:focus, textarea:focus {
             outline: none;
-            border-color: #e52d48;
+            transition: border-color 0.3s;
         }
-        textarea {
-            resize: vertical;
+
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: #8b5cf6;
         }
+
+        .form-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #a78bfa;
+            margin: 25px 0 15px 0;
+            border-left: 3px solid #8b5cf6;
+            padding-left: 10px;
+        }
+
         .btn-submit {
-            background-color: #e52d48;
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
             color: white;
             border: none;
-            padding: 12px;
             width: 100%;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            margin-top: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+
         .btn-submit:hover {
-            background-color: #c1233c;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        /* Widget de musique */
+        .music-widget {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .music-btn {
+            background: rgba(17, 24, 39, 0.9);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            transition: all 0.3s ease;
+        }
+
+        .music-btn:hover {
+            background: rgba(139, 92, 246, 0.25);
+            transform: scale(1.05);
+        }
+
+        .music-player-box {
+            display: none;
+            margin-bottom: 12px;
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 12px;
+            border-radius: 16px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            width: 300px;
+        }
+
+        .music-player-box.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        footer {
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .footer-dev {
+            color: #a78bfa;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Urgence Lilloise • Recrutement</h1>
-        
-        <form action="/submit-application" method="POST">
-            <div class="form-group">
-                <label>Choisissez votre poste :</label>
-                <!-- Champ caché qui stockera la valeur du poste sélectionné -->
-                <input type="hidden" id="service" name="service" required>
-                
-                <div class="roles-grid">
-                    <div class="role-card" onclick="selectRole(this, 'Gérant Illégal')">Gérant Illégal</div>
-                    <div class="role-card" onclick="selectRole(this, 'Gérant Légal')">Gérant Légal</div>
-                    <div class="role-card" onclick="selectRole(this, 'Modération')">Modération</div>
-                    <div class="role-card" onclick="selectRole(this, 'Développeur')">Développeur</div>
-                    <div class="role-card" onclick="selectRole(this, 'Community Manager')">Community Manager</div>
+
+    <div class="bg-banner"></div>
+
+    <nav>
+        <a href="/" class="nav-brand">
+            <img src="https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png?ex=6a67c76a&is=6a6675ea&hm=692140dcde62bd6e8dad05a69b7a8bb750a15266e7aa4d00749a3830e6ac4ada&=&format=webp&quality=lossless&width=1216&height=1216" alt="Logo" class="nav-logo">
+            <span class="nav-title">NewStreet RP</span>
+        </a>
+        <div class="nav-links">
+            <a href="/">Accueil</a>
+            <a href="/recrutement" class="active">Recrutement</a>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="recruitment-container">
+            <div class="recruitment-header">
+                <div class="header-icon">🛡️</div>
+                <div class="header-text">
+                    <h2>Rejoindre l'équipe de NewStreet Roleplay</h2>
+                    <p>Nous recherchons des personnes motivées pour maintenir la qualité du Roleplay et faire rayonner le serveur. Postule dès maintenant ci-dessous !</p>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="discordTag">Pseudo Discord (ex: pseudo) :</label>
-                <input type="text" id="discordTag" name="discordTag" required placeholder="Votre pseudo Discord">
-            </div>
+            <div class="jobs-grid">
+                <!-- 1. Gérant Légal -->
+                <div class="job-card">
+                    <div class="job-info">
+                        <h3>Gérant Légal</h3>
+                        <p>Superviser et gérer les entreprises et factions légales du serveur.</p>
+                    </div>
+                    <button class="btn-apply btn-open" onclick="openModal('modal-legal')">Postuler</button>
+                </div>
 
-            <div class="form-group">
-                <label for="discordId">ID Discord (optionnel) :</label>
-                <input type="text" id="discordId" name="discordId" placeholder="Ex: 123456789012345678">
-            </div>
+                <!-- 2. Gérant Illégal -->
+                <div class="job-card">
+                    <div class="job-info">
+                        <h3>Gérant Illégal</h3>
+                        <p>Encadrer les organisations criminelles et veiller à l'équilibrage.</p>
+                    </div>
+                    <button class="btn-apply btn-open" onclick="openModal('modal-illegal')">Postuler</button>
+                </div>
 
-            <div class="form-group">
-                <label for="prenom">Prénom :</label>
-                <input type="text" id="prenom" name="prenom" required placeholder="Votre prénom">
-            </div>
+                <!-- 3. Community Manager -->
+                <div class="job-card">
+                    <div class="job-info">
+                        <h3>Community Manager</h3>
+                        <p>Animer les réseaux sociaux (TikTok/YouTube) et dynamiser la commu.</p>
+                    </div>
+                    <button class="btn-apply btn-closed" disabled>Recrutement fermé</button>
+                </div>
 
-            <div class="form-group">
-                <label for="age">Âge :</label>
-                <input type="number" id="age" name="age" placeholder="Votre âge">
-            </div>
+                <!-- 4. Modération -->
+                <div class="job-card">
+                    <div class="job-info">
+                        <h3>Modération</h3>
+                        <p>Veiller au bon déroulement du serveur en jeu et sur Discord, gérer les tickets.</p>
+                    </div>
+                    <button class="btn-apply btn-open" onclick="openModal('modal-moderation')">Postuler</button>
+                </div>
 
-            <div class="form-group">
-                <label for="ambition">Vos ambitions :</label>
-                <textarea id="ambition" name="ambition" rows="3" placeholder="Vos ambitions pour le serveur..."></textarea>
+                <!-- 5. Développeur -->
+                <div class="job-card">
+                    <div class="job-info">
+                        <h3>Développeur</h3>
+                        <p>Créer, optimiser et configurer les scripts pour le serveur.</p>
+                    </div>
+                    <button class="btn-apply btn-open" onclick="openModal('modal-dev')">Postuler</button>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label for="motivation">Vos motivations :</label>
-                <textarea id="motivation" name="motivation" rows="4" required placeholder="Pourquoi souhaitez-vous nous rejoindre ?"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="experience">Expériences passées :</label>
-                <textarea id="experience" name="experience" rows="3" placeholder="Vos anciennes expériences en tant que staff/dev..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="roleModerateur">Vision du rôle :</label>
-                <textarea id="roleModerateur" name="roleModerateur" rows="3" placeholder="Comment percevez-vous ce rôle ?"></textarea>
-            </div>
-
-            <button type="submit" class="btn-submit">Envoyer ma candidature</button>
-        </form>
+        </div>
     </div>
 
+    <!-- MODALE MODÉRATION -->
+    <div class="modal-overlay" id="modal-moderation">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler au poste de Modérateur</h3>
+                <button class="close-modal" onclick="closeModal('modal-moderation')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Modération">
+                
+                <div class="form-section-title">Informations Discord</div>
+                <div class="form-group">
+                    <label>Identifiant Discord :</label>
+                    <input type="text" name="discord_id" required placeholder="Ex: 123456789012345678">
+                </div>
+                <div class="form-group">
+                    <label>Nom Discord :</label>
+                    <input type="text" name="discord_name" required placeholder="Ex: pseudo#0000">
+                </div>
+
+                <div class="form-section-title">Partie HRP</div>
+                <div class="form-group">
+                    <label>Nom :</label>
+                    <input type="text" name="nom" required>
+                </div>
+                <div class="form-group">
+                    <label>Prénom :</label>
+                    <input type="text" name="prenom" required>
+                </div>
+                <div class="form-group">
+                    <label>Age :</label>
+                    <input type="number" name="age" required>
+                </div>
+
+                <div class="form-section-title">Partie Motivation</div>
+                <div class="form-group">
+                    <label>Pourquoi vous et pas un autre ?</label>
+                    <textarea name="motivation_1" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Quelles sont vos compétences en modération ?</label>
+                    <textarea name="motivation_2" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Quel est le rôle d'un modérateur ?</label>
+                    <textarea name="motivation_3" rows="3" required></textarea>
+                </div>
+
+                <div class="form-section-title">Mise en situation</div>
+                <div class="form-group">
+                    <label>Un modérateur abuse de ses permissions devant vous, que faites-vous ?</label>
+                    <textarea name="sit_1" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Un joueur freekill à plusieurs reprises devant vous, mais vous n'êtes pas en staff, que faites-vous ?</label>
+                    <textarea name="sit_2" rows="3" required></textarea>
+                </div>
+
+                <div class="form-section-title">Conclusion</div>
+                <div class="form-group">
+                    <label>Un dernier mot à dire ?</label>
+                    <textarea name="conclusion" rows="2"></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE DÉVELOPPEUR (Avec tes questions exactes) -->
+    <div class="modal-overlay" id="modal-dev">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler au poste de Développeur</h3>
+                <button class="close-modal" onclick="closeModal('modal-dev')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Développeur">
+                
+                <div class="form-group">
+                    <label>Présentez-vous en quelques lignes (âge, prénom/pseudo, expérience, etc.) :</label>
+                    <textarea name="dev_presentation" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Depuis combien de temps développez-vous et quels langages maîtrisez-vous ? (Lua, JavaScript, TypeScript, HTML/CSS, SQL, C#, etc.) :</label>
+                    <textarea name="dev_languages" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Quels sont vos domaines de compétence ? (Scripts FiveM, interfaces NUI, optimisation, bots Discord, base de données, web, etc.) :</label>
+                    <textarea name="dev_skills" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Avez-vous déjà développé pour un serveur FiveM ou Discord ? Si oui, présentez vos principales réalisations :</label>
+                    <textarea name="dev_experience" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Quels frameworks et outils utilisez-vous ? (ESX, QBCore, Qbox, GitHub, VS Code, HeidiSQL, etc.) :</label>
+                    <textarea name="dev_tools" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Pourquoi souhaitez-vous rejoindre notre équipe de développement ?</label>
+                    <textarea name="dev_why_us" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Quelles sont vos disponibilités hebdomadaires et combien d'heures pouvez-vous consacrer au développement ?</label>
+                    <textarea name="dev_availability" rows="2" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Avez-vous des réalisations, un GitHub, un portfolio ou des captures d'écran de vos projets à nous partager ? Si oui, fournissez les liens :</label>
+                    <textarea name="dev_portfolio" rows="2"></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALES POUR LES AUTRES POSTES -->
+    <div class="modal-overlay" id="modal-legal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler : Gérant Légal</h3>
+                <button class="close-modal" onclick="closeModal('modal-legal')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Gerant Legal">
+                <div class="form-group"><label>Nom Discord :</label><input type="text" name="discord_name" required></div>
+                <div class="form-group"><label>Vos motivations pour le Légal :</label><textarea name="motivation" rows="4" required></textarea></div>
+                <button type="submit" class="btn-submit">Envoyer</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-illegal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler : Gérant Illégal</h3>
+                <button class="close-modal" onclick="closeModal('modal-illegal')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Gerant Illegal">
+                <div class="form-group"><label>Nom Discord :</label><input type="text" name="discord_name" required></div>
+                <div class="form-group"><label>Vos motivations pour l'Illégal :</label><textarea name="motivation" rows="4" required></textarea></div>
+                <button type="submit" class="btn-submit">Envoyer</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="music-widget">
+        <div class="music-player-box" id="playerBox">
+            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/5kfAx6phDHPpz5g8IAPyc2?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+        <button class="music-btn" onclick="togglePlayer()">
+            🎧 <span>Ambiance Sonore</span>
+        </button>
+    </div>
+
+    <footer>
+        <div>&copy; 2026 NewStreet Roleplay. Tous droits réservés.</div>
+        <div class="footer-dev">Server made by : L2B & R2</div>
+    </footer>
+
     <script>
-        function selectRole(element, roleName) {
-            // Retire la sélection de toutes les cartes
-            document.querySelectorAll('.role-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            // Sélectionne la carte cliquée
-            element.classList.add('selected');
-            // Remplit l'input caché avec le nom du poste
-            document.getElementById('service').value = roleName;
+        function togglePlayer() {
+            const box = document.getElementById('playerBox');
+            box.classList.toggle('active');
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
         }
     </script>
+
 </body>
 </html>
