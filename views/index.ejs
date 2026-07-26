@@ -67,35 +67,44 @@
             position: relative;
         }
 
-        /* Effet lumineux aux couleurs USA (Bleu, Blanc, Rouge) qui ondule derrière le logo */
-        .hero-card::before {
-            content: '';
-            position: absolute;
-            top: 35px;
-            width: 140px;
-            height: 140px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), rgba(255, 255, 255, 0.3), rgba(239, 68, 68, 0.5));
-            filter: blur(45px);
-            border-radius: 50%;
-            z-index: 1;
-            animation: usaWave 5s infinite alternate ease-in-out;
+        /* Conteneur pour le drapeau américain en arrière-plan du logo */
+        .logo-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            z-index: 2;
         }
 
-        @keyframes usaWave {
-            0% { transform: scale(0.9) rotate(0deg); opacity: 0.6; }
-            100% { transform: scale(1.1) rotate(180deg); opacity: 0.9; }
+        .usa-flag-bg {
+            position: absolute;
+            width: 160px;
+            height: 100px;
+            background-image: url('https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.22; /* Discret pour faire un joli fond */
+            border-radius: 10px;
+            filter: blur(4px);
+            z-index: 1;
+            animation: flagPulse 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes flagPulse {
+            0% { transform: scale(0.95); opacity: 0.15; }
+            100% { transform: scale(1.08); opacity: 0.28; }
         }
 
         .server-logo {
             position: relative;
-            z-index: 2;
+            z-index: 3;
             width: 120px;
             height: 120px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #3b82f6;
-            box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
-            margin-bottom: 25px;
+            border: 3px solid #8b5cf6;
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
             animation: floatLogo 3s infinite ease-in-out;
             background: #111827;
         }
@@ -110,7 +119,7 @@
             font-weight: 700;
             letter-spacing: 1px;
             margin-bottom: 15px;
-            background: linear-gradient(135deg, #ffffff, #93c5fd);
+            background: linear-gradient(135deg, #ffffff, #a78bfa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             position: relative;
@@ -148,14 +157,14 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
             color: white;
             border: none;
         }
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
         }
 
         .btn-secondary {
@@ -181,7 +190,7 @@
 
         .music-btn {
             background: rgba(17, 24, 39, 0.9);
-            border: 1px solid rgba(59, 130, 246, 0.4);
+            border: 1px solid rgba(139, 92, 246, 0.4);
             color: white;
             padding: 12px 20px;
             border-radius: 30px;
@@ -197,7 +206,7 @@
         }
 
         .music-btn:hover {
-            background: rgba(59, 130, 246, 0.25);
+            background: rgba(139, 92, 246, 0.25);
             transform: scale(1.05);
         }
 
@@ -205,7 +214,7 @@
             display: none;
             margin-bottom: 12px;
             background: rgba(17, 24, 39, 0.95);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.3);
             padding: 12px;
             border-radius: 16px;
             backdrop-filter: blur(16px);
@@ -237,7 +246,7 @@
         }
 
         .footer-dev {
-            color: #93c5fd;
+            color: #a78bfa;
             font-weight: 500;
             letter-spacing: 0.5px;
         }
@@ -249,8 +258,11 @@
 
     <div class="main-wrapper">
         <div class="hero-card">
-            <!-- Effet lumineux USA dynamique derrière le logo -->
-            <img src="https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png?ex=6a67c76a&is=6a6675ea&hm=692140dcde62bd6e8dad05a69b7a8bb750a15266e7aa4d00749a3830e6ac4ada&=&format=webp&quality=lossless&width=1216&height=1216" alt="NewStreet Logo" class="server-logo">
+            <!-- Logo avec le drapeau américain en arrière-plan -->
+            <div class="logo-container">
+                <div class="usa-flag-bg"></div>
+                <img src="https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png?ex=6a67c76a&is=6a6675ea&hm=692140dcde62bd6e8dad05a69b7a8bb750a15266e7aa4d00749a3830e6ac4ada&=&format=webp&quality=lossless&width=1216&height=1216" alt="NewStreet Logo" class="server-logo">
+            </div>
             
             <h1>NewStreet Roleplay</h1>
             
