@@ -65,7 +65,7 @@ client.on('messageCreate', async (message) => {
       new ButtonBuilder()
         .setLabel('Accéder au site / Postuler')
         .setStyle(ButtonStyle.Link)
-        .setURL('https://ton-site.onrender.com/recrutement') // Remplace par ton URL Render une fois créée
+        .setURL('https://newstreet.onrender.com/recrutement')
         .setEmoji('🔗')
     );
 
@@ -96,8 +96,8 @@ app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement')); 
 app.get('/reglement', (req, res) => res.render('reglement')); 
 
-// Traitement du formulaire de recrutement
-app.post('/recrutement', applyLimiter, async (req, res) => {
+// Logique commune pour le traitement des candidatures (utilisée par les deux routes POST)
+const handleApplicationSubmission = async (req, res) => {
   const { service, discordTag, discordId, prenom, age, ambition, motivation, experience, roleModerateur } = req.body;
 
   if (!discordTag || !discordId || !prenom || !age || !motivation) {
@@ -111,7 +111,6 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
   }
 
   try {
-    // Récupération de l'ID du salon correspondant au service/poste sélectionné
     const targetChannelId = CHANNEL_IDS[service];
     if (!targetChannelId) {
       return res.status(400).json({ error: "Poste inconnu ou salon de destination non configuré." });
@@ -157,7 +156,13 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
     console.error("Erreur lors de l'envoi de la candidature :", err);
     return res.status(500).json({ error: "Erreur lors de la communication avec le serveur Discord." });
   }
-});
+};
+
+// Route POST principale pointée par ton formulaire HTML (`/submit-application`)
+app.post('/submit-application', applyLimiter, handleApplicationSubmission);
+
+// Route POST de secours au cas où un autre lien pointe vers `/recrutement`
+app.post('/recrutement', applyLimiter, handleApplicationSubmission);
 
 // Gestion des Interactions (Boutons Accepter / Refuser)
 client.on('interactionCreate', async (interaction) => {
