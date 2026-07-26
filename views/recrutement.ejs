@@ -1,778 +1,253 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recrutement - NewStreet Roleplay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body {
-            background-color: #070913;
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            overflow-x: hidden;
-            position: relative;
+const express = require('express');
+const rateLimit = require('express-rate-limit');
+const path = require('path');
+const { 
+  Client, 
+  GatewayIntentBits, 
+  EmbedBuilder, 
+  ActionRowBuilder, 
+  ButtonBuilder, 
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle
+} = require('discord.js');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Variables d'environnement & IDs des salons de candidatures
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+const RECRUTEMENT_CHANNEL_ID = '1526171548472446986'; // Salon pour envoyer le panel !panel
+const LOGO_URL = 'https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png';
+
+// Dictionnaire des salons selon le poste choisi
+const CHANNEL_IDS = {
+    "Gérant Illégal": "1531076334888157324",
+    "Gérant Légal": "1531076371043057766",
+    "Modération": "1531076399266267216",
+    "Développeur": "1531076424616644688",
+    "Community Manager": "1531076453792481280"
+};
+
+// Initialisation du Bot Discord
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
+
+// Connexion du Bot
+client.login(DISCORD_BOT_TOKEN).catch(err => {
+  console.error("❌ Erreur de connexion au Bot Discord:", err);
+});
+
+client.once('ready', () => {
+  console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
+});
+
+// Commande pour envoyer le panel de recrutement dans le salon dédié
+client.on('messageCreate', async (message) => {
+  if (message.author.bot || message.content !== '!panel') return;
+
+  const embed = new EmbedBuilder()
+    .setColor('#e52d48')
+    .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
+    .setDescription("Les recrutements sont actuellement **ouverts**.\n\nClique sur le bouton ci-dessous pour accéder au site et postuler directement !")
+    .setThumbnail(LOGO_URL)
+    .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
+
+  const row = new ActionRowBuilder()
+    .addComponents(
+      new ButtonBuilder()
+        .setLabel('Accéder au site / Postuler')
+        .setStyle(ButtonStyle.Link)
+        .setURL('https://newstreet.onrender.com/recrutement')
+        .setEmoji('🔗')
+    );
+
+  const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
+  if (channel) {
+    await channel.send({ embeds: [embed], components: [row] });
+    message.reply('✅ Panel de recrutement envoyé avec succès !');
+  } else {
+    message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
+  }
+});
+
+// Configuration EJS & Middlewares
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+const applyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: "Trop de tentatives. Réessayez plus tard." }
+});
+
+// Routes du site web
+app.get('/', (req, res) => res.render('index'));
+app.get('/recrutement', (req, res) => res.render('recrutement')); 
+app.get('/reglement', (req, res) => res.render('reglement')); 
+
+// Logique commune pour le traitement des candidatures
+const handleApplicationSubmission = async (req, res) => {
+  const { service, discordTag, discordId, prenom, age, ambition, motivation, experience, roleModerateur } = req.body;
+
+  // Sécurité assouplie : ne bloque plus si un champ optionnel est vide ou mal nommé dans le HTML
+  if (!discordTag || !prenom || !motivation) {
+    return res.status(400).json({ error: "Veuillez remplir au moins votre pseudo Discord, votre prénom et vos motivations." });
+  }
+
+  const isCM = service && service.toLowerCase().includes('community');
+
+  if (isCM) {
+    return res.status(400).json({ error: "Les recrutements pour le poste de Community Manager sont actuellement fermés." });
+  }
+
+  try {
+    // Si le service ne correspond pas exactement, on envoie par défaut dans le salon Modération (ou un autre au choix)
+    const targetChannelId = CHANNEL_IDS[service] || CHANNEL_IDS["Modération"];
+    
+    const channel = await client.channels.fetch(targetChannelId);
+    if (!channel) {
+      return res.status(500).json({ error: "Salon Discord de destination introuvable." });
+    }
+
+    const embed = new EmbedBuilder()
+      .setTitle(`DOSSIER DE CANDIDATURE — ${(service || 'GÉNÉRAL').toUpperCase()}`)
+      .setColor(0x1E222B)
+      .setThumbnail(LOGO_URL)
+      .addFields(
+        { name: "Identification Discord", value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId || 'Non fourni'}\``, inline: true },
+        { name: "Informations IRL", value: `• **Prénom :** ${prenom}\n• **Âge :** ${age || 'Non renseigné'} ans`, inline: true },
+        { name: "\u200B", value: "\u200B", inline: false },
+        { name: "Ambitions", value: `\`\`\`\n${ambition || 'Non renseignée'}\n\`\`\``, inline: false },
+        { name: "Motivations", value: `\`\`\`\n${motivation}\n\`\`\``, inline: false },
+        { name: "Expériences Passées", value: `\`\`\`\n${experience || 'Aucune expérience mentionnée.'}\n\`\`\``, inline: false },
+        { name: "Vision du poste de Modérateur", value: `\`\`\`\n${roleModerateur || 'Non renseigné'}\n\`\`\``, inline: false }
+      )
+      .setFooter({ text: "Urgence Lilloise — Système de Recrutement" })
+      .setTimestamp();
+
+    const targetIdForButton = discordId || 'unknown';
+    const buttons = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`accept_${targetIdForButton}`)
+        .setLabel('Accepter')
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId(`refuse_${targetIdForButton}`)
+        .setLabel('Refuser')
+        .setStyle(ButtonStyle.Danger)
+    );
+
+    await channel.send({ embeds: [embed], components: [buttons] });
+    
+    return res.json({ success: true, message: "Candidature envoyée avec succès !" });
+
+  } catch (err) {
+    console.error("Erreur lors de l'envoi de la candidature :", err);
+    return res.status(500).json({ error: "Erreur lors de la communication avec le serveur Discord." });
+  }
+};
+
+// Routes POST gérant ton formulaire
+app.post('/submit-application', applyLimiter, handleApplicationSubmission);
+app.post('/recrutement', applyLimiter, handleApplicationSubmission);
+
+// Gestion des Interactions (Boutons Accepter / Refuser)
+client.on('interactionCreate', async (interaction) => {
+  try {
+    if (interaction.isButton()) {
+      const [action, targetUserId] = interaction.customId.split('_');
+      
+      if (action === 'accept') {
+        await interaction.deferUpdate();
+        const staffUser = interaction.user;
+        const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+
+        const acceptEmbed = new EmbedBuilder()
+          .setTitle("🪪 Recrutement")
+          .setDescription("Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Acceptée.**\n\n🎉 Félicitations ! Votre candidature a été acceptée !")
+          .setColor(0x2ED573)
+          .setThumbnail(LOGO_URL)
+          .setFooter({ text: "Tous droits réservés" });
+
+        if (targetUserId && targetUserId !== 'unknown') {
+          const targetUser = await client.users.fetch(targetUserId).catch(() => null);
+          if (targetUser) {
+            await targetUser.send({ embeds: [acceptEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+          }
         }
 
-        .bg-banner {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png?ex=6a67c76a&is=6a6675ea&hm=3b1ce7eaef124e053bdf9ede7ac4079a1a691f923267191976f2f13a7fb9f596&=&format=webp&quality=lossless');
-            background-size: cover;
-            background-position: center;
-            opacity: 0.25;
-            z-index: 1;
+        originalEmbed.setColor(0x2ED573);
+        originalEmbed.addFields({ name: "Statut du Dossier", value: `✅ **ACCEPTÉ** par ${staffUser.tag}`, inline: false });
+
+        await interaction.editReply({ embeds: [originalEmbed], components: [] });
+
+      } else if (action === 'refuse') {
+        const modal = new ModalBuilder()
+          .setCustomId(`modal_refuse_${targetUserId}`)
+          .setTitle('Motif du refus de la candidature');
+
+        const reasonInput = new TextInputBuilder()
+          .setCustomId('refuse_reason')
+          .setLabel('Raison du refus :')
+          .setStyle(TextInputStyle.Paragraph)
+          .setPlaceholder('Ex: Réponse trop courte...')
+          .setRequired(true);
+
+        modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+        await interaction.showModal(modal);
+      }
+    }
+
+    if (interaction.isModalSubmit()) {
+      if (interaction.customId.startsWith('modal_refuse_')) {
+        const targetUserId = interaction.customId.replace('modal_refuse_', '');
+        const reason = interaction.fields.getTextInputValue('refuse_reason');
+
+        await interaction.deferUpdate();
+
+        const staffUser = interaction.user;
+        const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+
+        const refuseEmbed = new EmbedBuilder()
+          .setTitle("🪪 Recrutement")
+          .setDescription(`Votre demande de recrutement a été refusée.\n\n📌 **Raison :**\n> *${reason}*`)
+          .setColor(0xE52D48)
+          .setThumbnail(LOGO_URL)
+          .setFooter({ text: "Tous droits réservés" });
+
+        if (targetUserId && targetUserId !== 'unknown') {
+          const targetUser = await client.users.fetch(targetUserId).catch(() => null);
+          if (targetUser) {
+            await targetUser.send({ embeds: [refuseEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+          }
         }
 
-        body::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, rgba(11, 15, 25, 0.6) 0%, rgba(7, 9, 19, 0.95) 100%);
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        nav {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 25px 50px;
-            z-index: 50;
-        }
-
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none;
-            color: white;
-        }
-
-        .nav-logo {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #8b5cf6;
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
-        }
-
-        .nav-title {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            background: linear-gradient(135deg, #ffffff, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 30px;
-        }
-
-        .nav-links a {
-            color: #9ca3af;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            transition: color 0.3s ease;
-        }
-
-        .nav-links a:hover, .nav-links a.active {
-            color: #ffffff;
-            text-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
-        }
-
-        .main-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 100px 20px 40px 20px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .recruitment-container {
-            background: rgba(17, 24, 39, 0.8);
-            border: 1px solid rgba(139, 92, 246, 0.35);
-            backdrop-filter: blur(16px);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(139, 92, 246, 0.15);
-            max-width: 900px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .recruitment-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            padding-bottom: 20px;
-        }
-
-        .header-icon {
-            background: rgba(139, 92, 246, 0.2);
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            color: #a78bfa;
-            padding: 12px;
-            border-radius: 14px;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .header-text h2 {
-            font-size: 22px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 5px;
-        }
-
-        .header-text p {
-            color: #9ca3af;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .jobs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 20px;
-        }
-
-        .job-card {
-            background: rgba(11, 15, 25, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.3s ease;
-        }
-
-        .job-card:hover {
-            border-color: rgba(139, 92, 246, 0.4);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-
-        .job-info h3 {
-            font-size: 17px;
-            font-weight: 600;
-            color: white;
-            margin-bottom: 8px;
-        }
-
-        .job-info p {
-            color: #9ca3af;
-            font-size: 13px;
-            line-height: 1.5;
-            margin-bottom: 20px;
-        }
-
-        .btn-apply {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: center;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-        }
-
-        .btn-open {
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-open:hover {
-            background: rgba(16, 185, 129, 0.3);
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
-        }
-
-        /* Fenêtre Modale */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .modal-content {
-            background: #0b0f19;
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            border-radius: 20px;
-            max-width: 650px;
-            width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
-            padding: 30px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
-            position: relative;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 15px;
-        }
-
-        .modal-header h3 {
-            font-size: 20px;
-            color: white;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            color: #9ca3af;
-            font-size: 24px;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .close-modal:hover { color: white; }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #d1d5db;
-            margin-bottom: 8px;
-        }
-
-        .form-group input, .form-group textarea {
-            width: 100%;
-            background: rgba(17, 24, 39, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 12px;
-            color: white;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus, .form-group textarea:focus {
-            border-color: #8b5cf6;
-        }
-
-        .form-section-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #a78bfa;
-            margin: 25px 0 15px 0;
-            border-left: 3px solid #8b5cf6;
-            padding-left: 10px;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(139, 92, 246, 0.4);
-        }
-
-        /* Widget de musique */
-        .music-widget {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-
-        .music-btn {
-            background: rgba(17, 24, 39, 0.9);
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
-            transition: all 0.3s ease;
-        }
-
-        .music-btn:hover {
-            background: rgba(139, 92, 246, 0.25);
-            transform: scale(1.05);
-        }
-
-        .music-player-box {
-            display: none;
-            margin-bottom: 12px;
-            background: rgba(17, 24, 39, 0.95);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            padding: 12px;
-            border-radius: 16px;
-            backdrop-filter: blur(16px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-            width: 300px;
-        }
-
-        .music-player-box.active {
-            display: block;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        footer {
-            padding: 20px;
-            text-align: center;
-            color: #6b7280;
-            font-size: 13px;
-            border-top: 1px solid rgba(255, 255, 255, 0.03);
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .footer-dev {
-            color: #a78bfa;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="bg-banner"></div>
-
-    <nav>
-        <a href="/" class="nav-brand">
-            <img src="https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png?ex=6a67c76a&is=6a6675ea&hm=692140dcde62bd6e8dad05a69b7a8bb750a15266e7aa4d00749a3830e6ac4ada&=&format=webp&quality=lossless&width=1216&height=1216" alt="Logo" class="nav-logo">
-            <span class="nav-title">NewStreet RP</span>
-        </a>
-        <div class="nav-links">
-            <a href="/">Accueil</a>
-            <a href="/recrutement" class="active">Recrutement</a>
-        </div>
-    </nav>
-
-    <div class="main-wrapper">
-        <div class="recruitment-container">
-            <div class="recruitment-header">
-                <div class="header-icon">🛡️</div>
-                <div class="header-text">
-                    <h2>Rejoindre l'équipe de NewStreet Roleplay</h2>
-                    <p>Nous recherchons des personnes motivées pour maintenir la qualité du Roleplay et faire rayonner le serveur. Postule dès maintenant ci-dessous !</p>
-                </div>
-            </div>
-
-            <div class="jobs-grid">
-                <!-- 1. Gérant Légal -->
-                <div class="job-card">
-                    <div class="job-info">
-                        <h3>Gérant Légal</h3>
-                        <p>Superviser et gérer les entreprises et factions légales du serveur.</p>
-                    </div>
-                    <button class="btn-apply btn-open" onclick="openModal('modal-legal')">Postuler</button>
-                </div>
-
-                <!-- 2. Gérant Illégal -->
-                <div class="job-card">
-                    <div class="job-info">
-                        <h3>Gérant Illégal</h3>
-                        <p>Encadrer les organisations criminelles et veiller à l'équilibrage.</p>
-                    </div>
-                    <button class="btn-apply btn-open" onclick="openModal('modal-illegal')">Postuler</button>
-                </div>
-
-                <!-- 3. Community Manager -->
-                <div class="job-card">
-                    <div class="job-info">
-                        <h3>Community Manager</h3>
-                        <p>Animer les réseaux sociaux (TikTok/YouTube) et dynamiser la commu.</p>
-                    </div>
-                    <button class="btn-apply btn-open" onclick="openModal('modal-cm')">Postuler</button>
-                </div>
-
-                <!-- 4. Modération -->
-                <div class="job-card">
-                    <div class="job-info">
-                        <h3>Modération</h3>
-                        <p>Veiller au bon déroulement du serveur en jeu et sur Discord, gérer les tickets.</p>
-                    </div>
-                    <button class="btn-apply btn-open" onclick="openModal('modal-moderation')">Postuler</button>
-                </div>
-
-                <!-- 5. Développeur -->
-                <div class="job-card">
-                    <div class="job-info">
-                        <h3>Développeur</h3>
-                        <p>Créer, optimiser et configurer les scripts pour le serveur.</p>
-                    </div>
-                    <button class="btn-apply btn-open" onclick="openModal('modal-dev')">Postuler</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODALE GÉRANT LÉGAL -->
-    <div class="modal-overlay" id="modal-legal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Postuler au poste de Gérant Légal</h3>
-                <button class="close-modal" onclick="closeModal('modal-legal')">&times;</button>
-            </div>
-            <form action="/submit-application" method="POST">
-                <input type="hidden" name="poste" value="Gérant Légal">
-                
-                <div class="form-group">
-                    <label>Présentez-vous en quelques lignes (âge, prénom/pseudo, expérience RP, etc.) :</label>
-                    <textarea name="legal_presentation" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Avez-vous déjà occupé un poste de gérant ou de responsable d'une entreprise légale ? Si oui, expliquez votre expérience :</label>
-                    <textarea name="legal_experience" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Pourquoi souhaitez-vous devenir Gérant Légal sur notre serveur ?</label>
-                    <textarea name="legal_why" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Comment géreriez-vous une entreprise afin de la rendre active et attractive pour les joueurs ?</label>
-                    <textarea name="legal_activity" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Comment réagiriez-vous face à un employé qui ne respecte pas les règles ou nuit à l'image de l'entreprise ?</label>
-                    <textarea name="legal_conflict" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Quelles sont vos disponibilités et combien d'heures pouvez-vous consacrer à la gestion de votre entreprise chaque semaine ?</label>
-                    <textarea name="legal_availability" rows="2" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Selon vous, quelles sont les principales qualités d'un bon Gérant Légal ?</label>
-                    <textarea name="legal_qualities" rows="2" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Pourquoi devrions-nous vous choisir plutôt qu'un autre candidat ?</label>
-                    <textarea name="legal_why_you" rows="2" required></textarea>
-                </div>
-
-                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODALE GÉRANT ILLÉGAL -->
-    <div class="modal-overlay" id="modal-illegal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Postuler au poste de Gérant Illégal</h3>
-                <button class="close-modal" onclick="closeModal('modal-illegal')">&times;</button>
-            </div>
-            <form action="/submit-application" method="POST">
-                <input type="hidden" name="poste" value="Gérant Illégal">
-                
-                <div class="form-group">
-                    <label>Présentez-vous en quelques lignes (âge, prénom/pseudo, expérience RP, etc.) :</label>
-                    <textarea name="illegal_presentation" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Avez-vous déjà occupé un poste à responsabilité dans la gestion d'organisations illégales ? Si oui, expliquez votre expérience :</label>
-                    <textarea name="illegal_experience" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Pourquoi souhaitez-vous rejoindre l'équipe en tant que Gérant Illégal ?</label>
-                    <textarea name="illegal_why" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Comment garantiriez-vous un équilibre entre les différentes organisations illégales afin d'assurer un RP juste et de qualité ?</label>
-                    <textarea name="illegal_balance" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Comment réagiriez-vous en cas de conflit entre deux organisations illégales ou entre leurs dirigeants ?</label>
-                    <textarea name="illegal_conflict" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Quelles sont vos disponibilités et combien de temps pouvez-vous consacrer à ce poste chaque semaine ?</label>
-                    <textarea name="illegal_availability" rows="2" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Selon vous, quelles sont les qualités indispensables d'un bon Gérant Illégal ?</label>
-                    <textarea name="illegal_qualities" rows="2" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Pourquoi devrions-nous vous confier la gestion des organisations illégales plutôt qu'à un autre candidat ?</label>
-                    <textarea name="illegal_why_you" rows="2" required></textarea>
-                </div>
-
-                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODALE COMMUNITY MANAGER -->
-    <div class="modal-overlay" id="modal-cm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Postuler au poste de Community Manager</h3>
-                <button class="close-modal" onclick="closeModal('modal-cm')">&times;</button>
-            </div>
-            <form action="/submit-application" method="POST">
-                <input type="hidden" name="poste" value="Community Manager">
-                
-                <div class="form-group">
-                    <label>Présentez-vous en quelques lignes (âge, prénom/pseudo, expérience, etc.) :</label>
-                    <textarea name="cm_presentation" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Avez-vous déjà occupé un poste de Community Manager ou de gestionnaire de communauté ? Si oui, détaillez votre expérience :</label>
-                    <textarea name="cm_experience" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Pourquoi souhaitez-vous rejoindre notre équipe en tant que Community Manager ?</label>
-                    <textarea name="cm_why" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Comment feriez-vous pour animer la communauté et maintenir une bonne activité sur le serveur Discord et les réseaux sociaux ?</label>
-                    <textarea name="cm_activity" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Comment réagiriez-vous face à une situation de conflit ou à des critiques de la communauté envers le serveur ?</label>
-                    <textarea name="cm_conflict" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Quelles sont vos disponibilités et combien de temps pouvez-vous consacrer à ce poste chaque semaine ?</label>
-                    <textarea name="cm_availability" rows="2" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Selon vous, quelles sont les qualités essentielles d'un bon Community Manager ?</label>
-                    <textarea name="cm_qualities" rows="2" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Pourquoi devrions-nous vous choisir plutôt qu'un autre candidat pour représenter l'image du serveur ?</label>
-                    <textarea name="cm_why_you" rows="2" required></textarea>
-                </div>
-
-                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODALE MODÉRATION -->
-    <div class="modal-overlay" id="modal-moderation">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Postuler au poste de Modérateur</h3>
-                <button class="close-modal" onclick="closeModal('modal-moderation')">&times;</button>
-            </div>
-            <form action="/submit-application" method="POST">
-                <input type="hidden" name="poste" value="Modération">
-                
-                <div class="form-section-title">Informations Discord</div>
-                <div class="form-group">
-                    <label>Identifiant Discord :</label>
-                    <input type="text" name="discord_id" required placeholder="Ex: 123456789012345678">
-                </div>
-                <div class="form-group">
-                    <label>Nom Discord :</label>
-                    <input type="text" name="discord_name" required placeholder="Ex: pseudo#0000">
-                </div>
-
-                <div class="form-section-title">Partie HRP</div>
-                <div class="form-group">
-                    <label>Nom :</label>
-                    <input type="text" name="nom" required>
-                </div>
-                <div class="form-group">
-                    <label>Prénom :</label>
-                    <input type="text" name="prenom" required>
-                </div>
-                <div class="form-group">
-                    <label>Age :</label>
-                    <input type="number" name="age" required>
-                </div>
-
-                <div class="form-section-title">Partie Motivation</div>
-                <div class="form-group">
-                    <label>Pourquoi vous et pas un autre ?</label>
-                    <textarea name="motivation_1" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Quelles sont vos compétences en modération ?</label>
-                    <textarea name="motivation_2" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Quel est le rôle d'un modérateur ?</label>
-                    <textarea name="motivation_3" rows="3" required></textarea>
-                </div>
-
-                <div class="form-section-title">Mise en situation</div>
-                <div class="form-group">
-                    <label>Un modérateur abuse de ses permissions devant vous, que faites-vous ?</label>
-                    <textarea name="sit_1" rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Un joueur freekill à plusieurs reprises devant vous, mais vous n'êtes pas en staff, que faites-vous ?</label>
-                    <textarea name="sit_2" rows="3" required></textarea>
-                </div>
-
-                <div class="form-section-title">Conclusion</div>
-                <div class="form-group">
-                    <label>Un dernier mot à dire ?</label>
-                    <textarea name="conclusion" rows="2"></textarea>
-                </div>
-
-                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODALE DÉVELOPPEUR -->
-    <div class="modal-overlay" id="modal-dev">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Postuler au poste de Développeur</h3>
-                <button class="close-modal" onclick="closeModal('modal-dev')">&times;</button>
-            </div>
-            <form action="/submit-application" method="POST">
-                <input type="hidden" name="poste" value="Développeur">
-                
-                <div class="form-group">
-                    <label>Présentez-vous en quelques lignes (âge, prénom/pseudo, expérience, etc.) :</label>
-                    <textarea name="dev_presentation" rows="3" required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Depuis combien de temps développez-vous et quels langages maîtrisez-vous ? (Lua, JavaScript, TypeScript, HTML/CSS, SQL, C#, etc.) :</label>
-                    <textarea name="dev_languages" rows="3" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Quels sont vos domaines de compétence ? (Scripts FiveM, interfaces NUI, optimisation, bots Discord, base de données, web, etc.) :</label>
-                    <textarea name="dev_skills" rows="3" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Avez-vous déjà développé pour un serveur FiveM ou Discord ? Si oui, présentez vos principales réalisations :</label>
-                    <textarea name="dev_experience" rows="3" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Quels frameworks et outils utilisez-vous ? (ESX, QBCore, Qbox, GitHub, VS Code, HeidiSQL, etc.) :</label>
-                    <textarea name="dev_tools" rows="3" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Pourquoi souhaitez-vous rejoindre notre équipe de développement ?</label>
-                    <textarea name="dev_why_us" rows="3" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Quelles sont vos disponibilités hebdomadaires et combien d'heures pouvez-vous consacrer au développement ?</label>
-                    <textarea name="dev_availability" rows="2" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Avez-vous des réalisations, un GitHub, un portfolio ou des captures d'écran de vos projets à nous partager ? Si oui, fournissez les liens :</label>
-                    <textarea name="dev_portfolio" rows="2"></textarea>
-                </div>
-
-                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="music-widget">
-        <div class="music-player-box" id="playerBox">
-            <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/5kfAx6phDHPpz5g8IAPyc2?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-        </div>
-        <button class="music-btn" onclick="togglePlayer()">
-            🎧 <span>Ambiance Sonore</span>
-        </button>
-    </div>
-
-    <footer>
-        <div>&copy; 2026 NewStreet Roleplay. Tous droits réservés.</div>
-        <div class="footer-dev">Server made by : L2B & R2</div>
-    </footer>
-
-    <script>
-        function togglePlayer() {
-            const box = document.getElementById('playerBox');
-            box.classList.toggle('active');
-        }
-
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-    </script>
-
-</body>
-</html>
+        originalEmbed.setColor(0xE52D48);
+        originalEmbed.addFields(
+          { name: "Statut du Dossier", value: `❌ **REFUSÉ** par ${staffUser.tag}`, inline: false },
+          { name: "Raison du Refus", value: `\`\`\`\n${reason}\n\`\`\``, inline: false }
+        );
+
+        await interaction.editReply({ embeds: [originalEmbed], components: [] });
+      }
+    }
+
+  } catch (error) {
+    console.error("Erreur lors du traitement de l'interaction :", error);
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Serveur Web démarré sur le port ${PORT}`);
+});
