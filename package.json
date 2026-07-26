@@ -1,0 +1,16 @@
+{
+  "name": "newstreet",
+  "version": "1.0.0",
+  "description": "Site de recrutement et bot Discord pour NewStreet Roleplay",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^17.4.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.0"
+  }
+}
