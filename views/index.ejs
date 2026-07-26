@@ -7,110 +7,164 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: #0b0f19; color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; overflow-x: hidden; }
+        body {
+            background-color: #0b0f19;
+            background-image: 
+                radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 10% 80%, rgba(109, 40, 217, 0.1) 0%, transparent 40%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+        }
 
-        /* Header avec ta vraie bannière Discord en arrière-plan */
-        .hero-header {
-            position: relative;
-            height: 45vh;
+        /* Conteneur principal centré */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        /* Carte de présentation immersive */
+        .hero-card {
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            backdrop-filter: blur(12px);
+            padding: 50px 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(139, 92, 246, 0.15);
+            max-width: 650px;
             width: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            overflow: hidden;
-            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
-        }
-
-        .hero-bg {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082376511602/IMG_2079.png?ex=6a67c76a&is=6a6675ea&hm=956b149baa492c3d3c36fee3b6a2493c8fc17e6cda6f3d965a84d8246e4e979a&=&format=webp&quality=lossless');
-            background-size: cover;
-            background-position: center;
-            z-index: 1;
-            filter: brightness(0.7);
-        }
-
-        .hero-content {
             position: relative;
-            z-index: 10;
-            text-align: center;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
-        /* Ton logo rond avec son effet lumineux */
+        /* Effet de lueur derrière le logo */
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            width: 130px;
+            height: 130px;
+            background: rgba(139, 92, 246, 0.4);
+            filter: blur(40px);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        /* Ton logo "N" parfaitement mis en valeur */
         .server-logo {
+            position: relative;
+            z-index: 2;
             width: 120px;
             height: 120px;
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid #8b5cf6;
-            box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
-            margin-bottom: 15px;
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
+            margin-bottom: 25px;
             animation: floatLogo 3s infinite ease-in-out;
             background: #111827;
         }
 
         @keyframes floatLogo {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+            50% { transform: translateY(-6px); }
         }
 
         h1 {
-            font-size: 45px;
+            font-size: 38px;
             font-weight: 700;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
             background: linear-gradient(135deg, #ffffff, #a78bfa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
-        /* Corps de la page */
-        .main-container {
-            flex: 1;
+        p {
+            color: #9ca3af;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 35px;
+        }
+
+        .buttons-group {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
             justify-content: center;
-            text-align: center;
-            padding: 40px 20px;
+            width: 100%;
         }
 
-        p { color: #9ca3af; font-size: 18px; max-width: 600px; margin-bottom: 35px; line-height: 1.6; }
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
 
-        .buttons-group { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-        .btn { padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-        .btn-primary { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; border: none; }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4); }
-        .btn-secondary { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid rgba(255, 255, 255, 0.1); }
-        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-3px); }
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            border: none;
+        }
 
-        footer { padding: 25px; text-align: center; color: #6b7280; font-size: 14px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        footer {
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+        }
     </style>
 </head>
 <body>
 
-    <div class="hero-header">
-        <!-- Bannière Discord en fond -->
-        <div class="hero-bg"></div>
-        <div class="hero-content">
-            <!-- Logo Discord -->
+    <div class="main-wrapper">
+        <div class="hero-card">
+            <!-- Ton Logo -->
             <img src="https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png?ex=6a67c76a&is=6a6675ea&hm=692140dcde62bd6e8dad05a69b7a8bb750a15266e7aa4d00749a3830e6ac4ada&=&format=webp&quality=lossless&width=1216&height=1216" alt="NewStreet Logo" class="server-logo">
+            
+            <!-- Titre -->
             <h1>NewStreet Roleplay</h1>
-        </div>
-    </div>
-
-    <div class="main-container">
-        <p>Plonge dans une expérience de jeu unique. Rejoins notre communauté, découvre nos nouveautés et lance ton aventure dès maintenant.</p>
-        
-        <div class="buttons-group">
-            <a href="/recrutement" class="btn btn-primary">Accéder aux recrutements</a>
-            <a href="https://discord.gg/newstreetrp" target="_blank" class="btn btn-secondary">Rejoindre le Discord</a>
+            
+            <!-- Description -->
+            <p>Plonge dans une expérience de jeu unique. Rejoins notre communauté, découvre nos nouveautés et lance ton aventure dès maintenant.</p>
+            
+            <!-- Boutons -->
+            <div class="buttons-group">
+                <a href="/recrutement" class="btn btn-primary">Accéder aux recrutements</a>
+                <a href="https://discord.gg/newstreetrp" target="_blank" class="btn btn-secondary">Rejoindre le Discord</a>
+            </div>
         </div>
     </div>
 
