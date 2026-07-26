@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 
 // Variables d'environnement & IDs des salons de candidatures
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-const RECRUTEMENT_CHANNEL_ID = '1526171548472446986'; // Salon pour envoyer le panel !panel
+const RECRUTEMENT_CHANNEL_ID = '1526171548472446986'; 
 const LOGO_URL = 'https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png';
 
 // Dictionnaire des salons selon le poste choisi
@@ -96,12 +96,12 @@ app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement')); 
 app.get('/reglement', (req, res) => res.render('reglement')); 
 
-// Logique commune pour le traitement des candidatures (utilisée par les deux routes POST)
+// Logique commune pour le traitement des candidatures
 const handleApplicationSubmission = async (req, res) => {
   const { service, discordTag, discordId, prenom, age, ambition, motivation, experience, roleModerateur } = req.body;
 
-  if (!discordTag || !discordId || !prenom || !age || !motivation) {
-    return res.status(400).json({ error: "Veuillez remplir tous les champs obligatoires." });
+  if (!discordTag || !prenom || !motivation) {
+    return res.status(400).json({ error: "Veuillez remplir au moins votre pseudo Discord, votre prénom et vos motivations." });
   }
 
   const isCM = service && service.toLowerCase().includes('community');
@@ -111,11 +111,8 @@ const handleApplicationSubmission = async (req, res) => {
   }
 
   try {
-    const targetChannelId = CHANNEL_IDS[service];
-    if (!targetChannelId) {
-      return res.status(400).json({ error: "Poste inconnu ou salon de destination non configuré." });
-    }
-
+    const targetChannelId = CHANNEL_IDS[service] || CHANNEL_IDS["Modération"];
+    
     const channel = await client.channels.fetch(targetChannelId);
     if (!channel) {
       return res.status(500).json({ error: "Salon Discord de destination introuvable." });
@@ -126,8 +123,8 @@ const handleApplicationSubmission = async (req, res) => {
       .setColor(0x1E222B)
       .setThumbnail(LOGO_URL)
       .addFields(
-        { name: "Identification Discord", value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId}\``, inline: true },
-        { name: "Informations IRL", value: `• **Prénom :** ${prenom}\n• **Âge :** ${age} ans`, inline: true },
+        { name: "Identification Discord", value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId || 'Non fourni'}\``, inline: true },
+        { name: "Informations IRL", value: `• **Prénom :** ${prenom}\n• **Âge :** ${age || 'Non renseigné'} ans`, inline: true },
         { name: "\u200B", value: "\u200B", inline: false },
         { name: "Ambitions", value: `\`\`\`\n${ambition || 'Non renseignée'}\n\`\`\``, inline: false },
         { name: "Motivations", value: `\`\`\`\n${motivation}\n\`\`\``, inline: false },
@@ -137,13 +134,14 @@ const handleApplicationSubmission = async (req, res) => {
       .setFooter({ text: "Urgence Lilloise — Système de Recrutement" })
       .setTimestamp();
 
+    const targetIdForButton = discordId || 'unknown';
     const buttons = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId(`accept_${discordId}`)
+        .setCustomId(`accept_${targetIdForButton}`)
         .setLabel('Accepter')
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
-        .setCustomId(`refuse_${discordId}`)
+        .setCustomId(`refuse_${targetIdForButton}`)
         .setLabel('Refuser')
         .setStyle(ButtonStyle.Danger)
     );
@@ -158,10 +156,8 @@ const handleApplicationSubmission = async (req, res) => {
   }
 };
 
-// Route POST principale pointée par ton formulaire HTML (`/submit-application`)
+// Routes POST gérant ton formulaire
 app.post('/submit-application', applyLimiter, handleApplicationSubmission);
-
-// Route POST de secours au cas où un autre lien pointe vers `/recrutement`
 app.post('/recrutement', applyLimiter, handleApplicationSubmission);
 
 // Gestion des Interactions (Boutons Accepter / Refuser)
@@ -174,7 +170,6 @@ client.on('interactionCreate', async (interaction) => {
         await interaction.deferUpdate();
         const staffUser = interaction.user;
         const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
-        const targetUser = await client.users.fetch(targetUserId);
 
         const acceptEmbed = new EmbedBuilder()
           .setTitle("🪪 Recrutement")
@@ -183,7 +178,12 @@ client.on('interactionCreate', async (interaction) => {
           .setThumbnail(LOGO_URL)
           .setFooter({ text: "Tous droits réservés" });
 
-        await targetUser.send({ embeds: [acceptEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+        if (targetUserId && targetUserId !== 'unknown') {
+          const targetUser = await client.users.fetch(targetUserId).catch(() => null);
+          if (targetUser) {
+            await targetUser.send({ embeds: [acceptEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+          }
+        }
 
         originalEmbed.setColor(0x2ED573);
         originalEmbed.addFields({ name: "Statut du Dossier", value: `✅ **ACCEPTÉ** par ${staffUser.tag}`, inline: false });
@@ -216,7 +216,6 @@ client.on('interactionCreate', async (interaction) => {
 
         const staffUser = interaction.user;
         const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
-        const targetUser = await client.users.fetch(targetUserId);
 
         const refuseEmbed = new EmbedBuilder()
           .setTitle("🪪 Recrutement")
@@ -225,7 +224,12 @@ client.on('interactionCreate', async (interaction) => {
           .setThumbnail(LOGO_URL)
           .setFooter({ text: "Tous droits réservés" });
 
-        await targetUser.send({ embeds: [refuseEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+        if (targetUserId && targetUserId !== 'unknown') {
+          const targetUser = await client.users.fetch(targetUserId).catch(() => null);
+          if (targetUser) {
+            await targetUser.send({ embeds: [refuseEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+          }
+        }
 
         originalEmbed.setColor(0xE52D48);
         originalEmbed.addFields(
