@@ -16,11 +16,19 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Variables d'environnement & IDs (Modifie les IDs selon ton nouveau serveur si besoin)
+// Variables d'environnement & IDs des salons de candidatures
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1526171548472446986'; // Salon pour envoyer le panel !panel
-const CANDIDATURE_DEST_CHANNEL_ID = '1530409770539024465'; // Salon où arrivent les candidatures du site
 const LOGO_URL = 'https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png';
+
+// Dictionnaire des salons selon le poste choisi
+const CHANNEL_IDS = {
+    "Gérant Illégal": "1531076334888157324",
+    "Gérant Légal": "1531076371043057766",
+    "Modération": "1531076399266267216",
+    "Développeur": "1531076424616644688",
+    "Community Manager": "1531076453792481280"
+};
 
 // Initialisation du Bot Discord
 const client = new Client({
@@ -85,8 +93,8 @@ const applyLimiter = rateLimit({
 
 // Routes du site web
 app.get('/', (req, res) => res.render('index'));
-app.get('/recrutement', (req, res) => res.render('recrutement')); // Assure-toi de créer recrutement.ejs si tu en as besoin
-app.get('/reglement', (req, res) => res.render('reglement')); // Si tu veux ajouter une page règlement
+app.get('/recrutement', (req, res) => res.render('recrutement')); 
+app.get('/reglement', (req, res) => res.render('reglement')); 
 
 // Traitement du formulaire de recrutement
 app.post('/recrutement', applyLimiter, async (req, res) => {
@@ -96,17 +104,27 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
     return res.status(400).json({ error: "Veuillez remplir tous les champs obligatoires." });
   }
 
+  const isCM = service && service.toLowerCase().includes('community');
+
+  if (isCM) {
+    return res.status(400).json({ error: "Les recrutements pour le poste de Community Manager sont actuellement fermés." });
+  }
+
   try {
-    const channel = await client.channels.fetch(CANDIDATURE_DEST_CHANNEL_ID);
+    // Récupération de l'ID du salon correspondant au service/poste sélectionné
+    const targetChannelId = CHANNEL_IDS[service];
+    if (!targetChannelId) {
+      return res.status(400).json({ error: "Poste inconnu ou salon de destination non configuré." });
+    }
+
+    const channel = await client.channels.fetch(targetChannelId);
     if (!channel) {
       return res.status(500).json({ error: "Salon Discord de destination introuvable." });
     }
 
-    const isCM = service && service.toLowerCase().includes('community');
-
     const embed = new EmbedBuilder()
       .setTitle(`DOSSIER DE CANDIDATURE — ${(service || 'GÉNÉRAL').toUpperCase()}`)
-      .setColor(isCM ? 0xE52D48 : 0x1E222B)
+      .setColor(0x1E222B)
       .setThumbnail(LOGO_URL)
       .addFields(
         { name: "Identification Discord", value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId}\``, inline: true },
@@ -120,29 +138,19 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
       .setFooter({ text: "Urgence Lilloise — Système de Recrutement" })
       .setTimestamp();
 
-    if (isCM) {
-      embed.addFields({ name: "Statut du Dossier", value: "❌ **CANDIDATURE FERMÉE** (Poste indisponible)", inline: false });
-    }
-
     const buttons = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`accept_${discordId}`)
         .setLabel('Accepter')
-        .setStyle(ButtonStyle.Success)
-        .setDisabled(isCM),
+        .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
         .setCustomId(`refuse_${discordId}`)
         .setLabel('Refuser')
         .setStyle(ButtonStyle.Danger)
-        .setDisabled(isCM)
     );
 
     await channel.send({ embeds: [embed], components: [buttons] });
     
-    if (isCM) {
-      return res.status(400).json({ error: "Les recrutements pour le poste de Community Manager sont actuellement fermés." });
-    }
-
     return res.json({ success: true, message: "Candidature envoyée avec succès !" });
 
   } catch (err) {
