@@ -6,53 +6,119 @@
     <title>NewStreet Roleplay</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
+        /* Reset et base */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #0b0f19; color: #ffffff; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
 
-        body {
-            background-color: #0b0f19;
-            color: #ffffff;
-            min-height: 100vh;
+        /* Header avec fond animé */
+        .hero-header {
+            position: relative;
+            height: 50vh; /* Hauteur du header */
+            width: 100%;
+            overflow: hidden;
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            overflow-x: hidden;
-        }
-
-        /* Effet de lueur en arrière-plan */
-        .bg-glow {
-            position: absolute;
-            top: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 600px;
-            height: 300px;
-            background: rgba(139, 92, 246, 0.15);
-            filter: blur(120px);
-            z-index: -1;
-        }
-
-        header {
-            padding: 25px 50px;
-            display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
         }
 
-        .logo {
-            font-size: 24px;
+        /* Les images du carrousel de fond */
+        .hero-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            animation: kenBurns 20s infinite linear alternate;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: brightness(0.4); /* Assombrit les images pour le texte */
+        }
+
+        /* Animation subtile (Ken Burns) */
+        @keyframes kenBurns {
+            0% { transform: scale(1) translate(0, 0); }
+            50% { transform: scale(1.08) translate(-2%, -2%); }
+            100% { transform: scale(1) translate(2%, 2%); }
+        }
+
+        /* Les différentes images à animer en boucle */
+        .hero-bg-1 { background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png'); opacity: 1; animation-delay: 0s; }
+        .hero-bg-2 { background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082376511602/IMG_2079.png'); opacity: 0; animation-delay: 10s; }
+        .hero-bg-3 { background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044475844034660/b6e1646d-f78e-4cdf-bb30-f3cbea3f7b71.png'); opacity: 0; animation-delay: 10s; /* Synchronisé avec bg-2 */ }
+        
+        /* Correction pour le fondu entre les images */
+        @keyframes fade {
+            0% { opacity: 0; }
+            25% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Appliquer le fade aux éléments 2 et 3 */
+        .hero-bg-2 { animation: kenBurns 20s infinite linear alternate, fade 10s infinite linear; animation-delay: 0s; }
+        .hero-bg-3 { animation: kenBurns 20s infinite linear alternate, fade 10s infinite linear; animation-delay: 10s; }
+        /* Masquer l'image 1 quand les autres apparaissent */
+        .hero-bg-1 { animation: kenBurns 20s infinite linear alternate, fade-out 10s infinite linear; }
+        @keyframes fade-out {
+            0% { opacity: 1; }
+            50% { opacity: 1; }
+            100% { opacity: 1; }
+            /* Ce keyframe est vide pour forcer l'opacité à 1 tout le long, mais ça ne marchera pas comme ça avec la superposition.
+            Simplifions : on va juste faire un fondu croisé entre bg1 et bg2/bg3. */
+        }
+
+        /* Simplification de l'animation : On utilise seulement 2 couches en boucle. */
+        .hero-bg-layer-1 {
+            background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082040705174/image.png');
+            opacity: 1;
+            animation: kenBurns 20s infinite linear alternate, crossFade1 20s infinite linear;
+        }
+        .hero-bg-layer-2 {
+            background-image: url('https://media.discordapp.net/attachments/1531037885145550918/1531044082376511602/IMG_2079.png');
+            opacity: 0;
+            animation: kenBurns 21s infinite linear alternate, crossFade2 20s infinite linear; /* Léger décalage d'anim */
+        }
+
+        @keyframes crossFade1 {
+            0%, 45% { opacity: 1; }
+            55%, 100% { opacity: 0; }
+        }
+        @keyframes crossFade2 {
+            0%, 45% { opacity: 0; }
+            55%, 100% { opacity: 1; }
+        }
+
+        /* Le contenu du header (logo + titre) */
+        .hero-content {
+            position: relative;
+            z-index: 10; /* Par-dessus le fond animé */
+            text-align: center;
+            padding: 20px;
+        }
+
+        .server-logo-img {
+            width: 150px; /* Taille du logo */
+            height: auto;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.5)); /* Halo violet */
+            animation: float 3s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            font-size: 48px;
             font-weight: 700;
-            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #ffffff, #a78bfa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: 1px;
         }
 
+        /* Reste de la page (Section principale et Footer) */
         .main-container {
             flex: 1;
             display: flex;
@@ -60,88 +126,37 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 20px;
+            padding: 60px 20px;
         }
 
-        h1 {
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            line-height: 1.2;
-        }
+        p { color: #9ca3af; font-size: 18px; max-width: 600px; margin-bottom: 40px; line-height: 1.6; }
 
-        h1 span {
-            color: #8b5cf6;
-        }
+        .buttons-group { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        .btn { padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 650; text-decoration: none; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .btn-primary { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; border: none; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-3px); }
 
-        p {
-            color: #9ca3af;
-            font-size: 18px;
-            max-width: 600px;
-            margin-bottom: 40px;
-            line-height: 1.6;
-        }
-
-        .buttons-group {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 14px 32px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 650;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-            color: white;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-3px);
-        }
-
-        footer {
-            padding: 25px;
-            text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        footer { padding: 25px; text-align: center; color: #6b7280; font-size: 14px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
     </style>
 </head>
 <body>
 
-    <div class="bg-glow"></div>
+    <div class="hero-header">
+        <!-- Fond animé en boucle avec les images de bannières/personnages -->
+        <div class="hero-bg hero-bg-layer-1"></div>
+        <div class="hero-bg hero-bg-layer-2"></div>
 
-    <header>
-        <div class="logo">NewStreet RP</div>
-    </header>
+        <div class="hero-content">
+            <!-- Le logo principal (Logo_Fivem_N.png) -->
+            <img src="https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png" alt="NewStreet Logo" class="server-logo-img">
+            <h1>NewStreet</h1>
+        </div>
+    </div>
 
     <div class="main-container">
-        <h1>Bienvenue sur <span>NewStreet</span></h1>
-        <p>Plonge dans une expérience de jeu unique. Rejoins notre communauté, découvre nos nouveautés et lance ton aventure dès maintenant.</p>
+        <p>Plonge dans une expérience de jeu unique sur NewStreet Roleplay. Rejoins notre communauté passionnée, découvre nos nouveautés et lance ton aventure dès maintenant.</p>
         
         <div class="buttons-group">
             <a href="/recrutement" class="btn btn-primary">Accéder aux recrutements</a>
