@@ -216,14 +216,7 @@
             box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
         }
 
-        .btn-closed {
-            background: rgba(239, 68, 68, 0.15);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            cursor: not-allowed;
-        }
-
-        /* Fenêtre Modale du Formulaire */
+        /* Fenêtre Modale */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -460,7 +453,7 @@
                         <h3>Community Manager</h3>
                         <p>Animer les réseaux sociaux (TikTok/YouTube) et dynamiser la commu.</p>
                     </div>
-                    <button class="btn-apply btn-closed" disabled>Recrutement fermé</button>
+                    <button class="btn-apply btn-open" onclick="openModal('modal-cm')">Postuler</button>
                 </div>
 
                 <!-- 4. Modération -->
@@ -484,7 +477,151 @@
         </div>
     </div>
 
-    <!-- MODALE MODÉRATION (Avec tes questions exactes) -->
+    <!-- MODALE GÉRANT LÉGAL -->
+    <div class="modal-overlay" id="modal-legal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler au poste de Gérant Légal</h3>
+                <button class="close-modal" onclick="closeModal('modal-legal')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Gérant Légal">
+                
+                <div class="form-group">
+                    <label>Présentez-vous en quelques lignes (âge, prénom/pseudo, expérience RP, etc.) :</label>
+                    <textarea name="legal_presentation" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Avez-vous déjà occupé un poste de gérant ou de responsable d'une entreprise légale ? Si oui, expliquez votre expérience :</label>
+                    <textarea name="legal_experience" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Pourquoi souhaitez-vous devenir Gérant Légal sur notre serveur ?</label>
+                    <textarea name="legal_why" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Comment géreriez-vous une entreprise afin de la rendre active et attractive pour les joueurs ?</label>
+                    <textarea name="legal_activity" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Comment réagiriez-vous face à un employé qui ne respecte pas les règles ou nuit à l'image de l'entreprise ?</label>
+                    <textarea name="legal_conflict" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Quelles sont vos disponibilités et combien d'heures pouvez-vous consacrer à la gestion de votre entreprise chaque semaine ?</label>
+                    <textarea name="legal_availability" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Selon vous, quelles sont les principales qualités d'un bon Gérant Légal ?</label>
+                    <textarea name="legal_qualities" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Pourquoi devrions-nous vous choisir plutôt qu'un autre candidat ?</label>
+                    <textarea name="legal_why_you" rows="2" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE GÉRANT ILLÉGAL -->
+    <div class="modal-overlay" id="modal-illegal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler au poste de Gérant Illégal</h3>
+                <button class="close-modal" onclick="closeModal('modal-illegal')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Gérant Illégal">
+                
+                <div class="form-group">
+                    <label>Présentez-vous en quelques lignes (âge, prénom/pseudo, expérience RP, etc.) :</label>
+                    <textarea name="illegal_presentation" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Avez-vous déjà occupé un poste à responsabilité dans la gestion d'organisations illégales ? Si oui, expliquez votre expérience :</label>
+                    <textarea name="illegal_experience" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Pourquoi souhaitez-vous rejoindre l'équipe en tant que Gérant Illégal ?</label>
+                    <textarea name="illegal_why" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Comment garantiriez-vous un équilibre entre les différentes organisations illégales afin d'assurer un RP juste et de qualité ?</label>
+                    <textarea name="illegal_balance" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Comment réagiriez-vous en cas de conflit entre deux organisations illégales ou entre leurs dirigeants ?</label>
+                    <textarea name="illegal_conflict" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Quelles sont vos disponibilités et combien de temps pouvez-vous consacrer à ce poste chaque semaine ?</label>
+                    <textarea name="illegal_availability" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Selon vous, quelles sont les qualités indispensables d'un bon Gérant Illégal ?</label>
+                    <textarea name="illegal_qualities" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Pourquoi devrions-nous vous confier la gestion des organisations illégales plutôt qu'à un autre candidat ?</label>
+                    <textarea name="illegal_why_you" rows="2" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE COMMUNITY MANAGER -->
+    <div class="modal-overlay" id="modal-cm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Postuler au poste de Community Manager</h3>
+                <button class="close-modal" onclick="closeModal('modal-cm')">&times;</button>
+            </div>
+            <form action="/submit-application" method="POST">
+                <input type="hidden" name="poste" value="Community Manager">
+                
+                <div class="form-group">
+                    <label>Présentez-vous en quelques lignes (âge, prénom/pseudo, expérience, etc.) :</label>
+                    <textarea name="cm_presentation" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Avez-vous déjà occupé un poste de Community Manager ou de gestionnaire de communauté ? Si oui, détaillez votre expérience :</label>
+                    <textarea name="cm_experience" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Pourquoi souhaitez-vous rejoindre notre équipe en tant que Community Manager ?</label>
+                    <textarea name="cm_why" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Comment feriez-vous pour animer la communauté et maintenir une bonne activité sur le serveur Discord et les réseaux sociaux ?</label>
+                    <textarea name="cm_activity" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Comment réagiriez-vous face à une situation de conflit ou à des critiques de la communauté envers le serveur ?</label>
+                    <textarea name="cm_conflict" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Quelles sont vos disponibilités et combien de temps pouvez-vous consacrer à ce poste chaque semaine ?</label>
+                    <textarea name="cm_availability" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Selon vous, quelles sont les qualités essentielles d'un bon Community Manager ?</label>
+                    <textarea name="cm_qualities" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Pourquoi devrions-nous vous choisir plutôt qu'un autre candidat pour représenter l'image du serveur ?</label>
+                    <textarea name="cm_why_you" rows="2" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE MODÉRATION -->
     <div class="modal-overlay" id="modal-moderation">
         <div class="modal-content">
             <div class="modal-header">
@@ -553,48 +690,57 @@
         </div>
     </div>
 
-    <!-- MODALES POUR LES AUTRES POSTES (Structure similaire rapide) -->
-    <div class="modal-overlay" id="modal-legal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Postuler : Gérant Légal</h3>
-                <button class="close-modal" onclick="closeModal('modal-legal')">&times;</button>
-            </div>
-            <form action="/submit-application" method="POST">
-                <input type="hidden" name="poste" value="Gerant Legal">
-                <div class="form-group"><label>Nom Discord :</label><input type="text" name="discord_name" required></div>
-                <div class="form-group"><label>Vos motivations pour le Légal :</label><textarea name="motivation" rows="4" required></textarea></div>
-                <button type="submit" class="btn-submit">Envoyer</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="modal-illegal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Postuler : Gérant Illégal</h3>
-                <button class="close-modal" onclick="closeModal('modal-illegal')">&times;</button>
-            </div>
-            <form action="/submit-application" method="POST">
-                <input type="hidden" name="poste" value="Gerant Illegal">
-                <div class="form-group"><label>Nom Discord :</label><input type="text" name="discord_name" required></div>
-                <div class="form-group"><label>Vos motivations pour l'Illégal :</label><textarea name="motivation" rows="4" required></textarea></div>
-                <button type="submit" class="btn-submit">Envoyer</button>
-            </form>
-        </div>
-    </div>
-
+    <!-- MODALE DÉVELOPPEUR -->
     <div class="modal-overlay" id="modal-dev">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Postuler : Développeur</h3>
+                <h3>Postuler au poste de Développeur</h3>
                 <button class="close-modal" onclick="closeModal('modal-dev')">&times;</button>
             </div>
             <form action="/submit-application" method="POST">
-                <input type="hidden" name="poste" value="Developpeur">
-                <div class="form-group"><label>Nom Discord :</label><input type="text" name="discord_name" required></div>
-                <div class="form-group"><label>Vos compétences en développement (Lua, JS...) :</label><textarea name="motivation" rows="4" required></textarea></div>
-                <button type="submit" class="btn-submit">Envoyer</button>
+                <input type="hidden" name="poste" value="Développeur">
+                
+                <div class="form-group">
+                    <label>Présentez-vous en quelques lignes (âge, prénom/pseudo, expérience, etc.) :</label>
+                    <textarea name="dev_presentation" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Depuis combien de temps développez-vous et quels langages maîtrisez-vous ? (Lua, JavaScript, TypeScript, HTML/CSS, SQL, C#, etc.) :</label>
+                    <textarea name="dev_languages" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Quels sont vos domaines de compétence ? (Scripts FiveM, interfaces NUI, optimisation, bots Discord, base de données, web, etc.) :</label>
+                    <textarea name="dev_skills" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Avez-vous déjà développé pour un serveur FiveM ou Discord ? Si oui, présentez vos principales réalisations :</label>
+                    <textarea name="dev_experience" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Quels frameworks et outils utilisez-vous ? (ESX, QBCore, Qbox, GitHub, VS Code, HeidiSQL, etc.) :</label>
+                    <textarea name="dev_tools" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Pourquoi souhaitez-vous rejoindre notre équipe de développement ?</label>
+                    <textarea name="dev_why_us" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Quelles sont vos disponibilités hebdomadaires et combien d'heures pouvez-vous consacrer au développement ?</label>
+                    <textarea name="dev_availability" rows="2" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Avez-vous des réalisations, un GitHub, un portfolio ou des captures d'écran de vos projets à nous partager ? Si oui, fournissez les liens :</label>
+                    <textarea name="dev_portfolio" rows="2"></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Envoyer ma candidature</button>
             </form>
         </div>
     </div>
