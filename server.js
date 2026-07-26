@@ -96,45 +96,57 @@ app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement')); 
 app.get('/reglement', (req, res) => res.render('reglement')); 
 
-// Logique commune pour le traitement des candidatures
+// Logique universelle et souple pour le traitement des candidatures
 const handleApplicationSubmission = async (req, res) => {
-  const { service, discordTag, discordId, prenom, age, ambition, motivation, experience, roleModerateur } = req.body;
-
-  if (!discordTag || !prenom || !motivation) {
-    return res.status(400).json({ error: "Veuillez remplir au moins votre pseudo Discord, votre prénom et vos motivations." });
-  }
-
-  const isCM = service && service.toLowerCase().includes('community');
-
-  if (isCM) {
-    return res.status(400).json({ error: "Les recrutements pour le poste de Community Manager sont actuellement fermés." });
-  }
-
   try {
-    const targetChannelId = CHANNEL_IDS[service] || CHANNEL_IDS["Modération"];
+    const data = req.body;
     
-    const channel = await client.channels.fetch(targetChannelId);
+    // Récupération intelligente et tolérante des champs de base
+    const service = data.poste || data.service || "Général";
+    const discordTag = data.discordTag || data.discord || data.pseudo || "Non renseigné";
+    const discordId = data.discordId || 'unknown';
+    const prenom = data.prenom || "Non renseigné";
+    const age = data.age || "Non renseigné";
+
+    // Vérification minimale pour éviter le spam vide
+    if (!discordTag || discordTag === "Non renseigné") {
+      return res.status(400).json({ error: "Veuillez renseigner votre pseudo Discord." });
+    }
+
+    const targetChannelId = CHANNEL_IDS[service] || CHANNEL_IDS["Modération"];
+    const channel = await client.channels.fetch(targetChannelId).catch(() => null);
+    
     if (!channel) {
       return res.status(500).json({ error: "Salon Discord de destination introuvable." });
     }
 
+    // Création dynamique des champs de l'embed à partir de TOUT ce que l'utilisateur a rempli
+    const dynamicFields = [];
+    for (const [key, value] of Object.entries(data)) {
+      // On exclut les champs déjà gérés à part pour éviter les doublons
+      if (!['poste', 'service', 'discordTag', 'discord', 'pseudo', 'discordId', 'prenom', 'age'].includes(key) && value) {
+        dynamicFields.push({
+          name: `🔹 ${key.toUpperCase()}`,
+          value: `\`\`\`\n${String(value).substring(0, 1000)}\n\`\`\``,
+          inline: false
+        });
+      }
+    }
+
     const embed = new EmbedBuilder()
-      .setTitle(`DOSSIER DE CANDIDATURE — ${(service || 'GÉNÉRAL').toUpperCase()}`)
-      .setColor(0x1E222B)
+      .setTitle(`📄 DOSSIER DE CANDIDATURE — ${service.toUpperCase()}`)
+      .setColor(0x8b5cf6)
       .setThumbnail(LOGO_URL)
       .addFields(
-        { name: "Identification Discord", value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId || 'Non fourni'}\``, inline: true },
-        { name: "Informations IRL", value: `• **Prénom :** ${prenom}\n• **Âge :** ${age || 'Non renseigné'} ans`, inline: true },
+        { name: "👤 Identification", value: `• **Discord :** \`${discordTag}\`\n• **ID :** \`${discordId}\``, inline: true },
+        { name: "🏷️ Informations", value: `• **Prénom :** ${prenom}\n• **Âge :** ${age} ans`, inline: true },
         { name: "\u200B", value: "\u200B", inline: false },
-        { name: "Ambitions", value: `\`\`\`\n${ambition || 'Non renseignée'}\n\`\`\``, inline: false },
-        { name: "Motivations", value: `\`\`\`\n${motivation}\n\`\`\``, inline: false },
-        { name: "Expériences Passées", value: `\`\`\`\n${experience || 'Aucune expérience mentionnée.'}\n\`\`\``, inline: false },
-        { name: "Vision du poste de Modérateur", value: `\`\`\`\n${roleModerateur || 'Non renseigné'}\n\`\`\``, inline: false }
+        ...dynamicFields
       )
       .setFooter({ text: "Urgence Lilloise — Système de Recrutement" })
       .setTimestamp();
 
-    const targetIdForButton = discordId || 'unknown';
+    const targetIdForButton = discordId !== 'unknown' ? discordId : 'unknown';
     const buttons = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`accept_${targetIdForButton}`)
@@ -148,7 +160,32 @@ const handleApplicationSubmission = async (req, res) => {
 
     await channel.send({ embeds: [embed], components: [buttons] });
     
-    return res.json({ success: true, message: "Candidature envoyée avec succès !" });
+    // Réponse propre au navigateur (affichage d'une page de succès élégante)
+    return res.send(`
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+            <meta charset="UTF-8">
+            <title>Candidature envoyée</title>
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+            <style>
+                body { background: #070913; color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+                .card { background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(139, 92, 246, 0.4); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); }
+                h1 { color: #34d399; margin-bottom: 15px; }
+                p { color: #9ca3af; margin-bottom: 25px; }
+                a { background: #8b5cf6; color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 600; }
+                a:hover { background: #7c3aed; }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h1>Candidature envoyée avec succès !</h1>
+                <p>Ton dossier a bien été transmis à l'équipe sur Discord.</p>
+                <a href="/recrutement">Retour au site</a>
+            </div>
+        </body>
+        </html>
+    `);
 
   } catch (err) {
     console.error("Erreur lors de l'envoi de la candidature :", err);
