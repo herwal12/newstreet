@@ -162,7 +162,6 @@
             transform: translateY(-3px);
         }
 
-        /* Lecteur de musique flottant en bas à droite */
         .music-widget {
             position: fixed;
             bottom: 25px;
@@ -225,6 +224,15 @@
             border-top: 1px solid rgba(255, 255, 255, 0.03);
             position: relative;
             z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .footer-dev {
+            color: #a78bfa;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
@@ -258,7 +266,8 @@
     </div>
 
     <footer>
-        &copy; 2026 NewStreet Roleplay. Tous droits réservés.
+        <div>&copy; 2026 NewStreet Roleplay. Tous droits réservés.</div>
+        <div class="footer-dev">Server made by : L2B & R2</div>
     </footer>
 
     <script>
