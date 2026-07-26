@@ -4,11 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Urgence Lilloise - Recrutement</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f1117;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 600px;
+            border: 1px: solid #30363d;
+        }
+        h1 {
+            text-align: center;
+            color: #e52d48;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #c9d1d9;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #30363d;
+            background-color: #0d1117;
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #e52d48;
+        }
+        textarea {
+            resize: vertical;
+        }
+        .btn-submit {
+            background-color: #e52d48;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-submit:hover {
+            background-color: #c1233c;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Candidature - Urgence Lilloise</h1>
+        <h1>Urgence Lilloise • Recrutement</h1>
         
         <form action="/submit-application" method="POST">
             <div class="form-group">
@@ -24,43 +91,43 @@
             </div>
 
             <div class="form-group">
-                <label for="discordTag">Pseudo Discord (ex: pseudo#0000 ou pseudo) :</label>
-                <input type="text" id="discordTag" name="discordTag" required>
+                <label for="discordTag">Pseudo Discord (ex: pseudo) :</label>
+                <input type="text" id="discordTag" name="discordTag" required placeholder="Votre pseudo Discord">
             </div>
 
             <div class="form-group">
                 <label for="discordId">ID Discord (optionnel) :</label>
-                <input type="text" id="discordId" name="discordId">
+                <input type="text" id="discordId" name="discordId" placeholder="Ex: 123456789012345678">
             </div>
 
             <div class="form-group">
                 <label for="prenom">Prénom :</label>
-                <input type="text" id="prenom" name="prenom" required>
+                <input type="text" id="prenom" name="prenom" required placeholder="Votre prénom">
             </div>
 
             <div class="form-group">
                 <label for="age">Âge :</label>
-                <input type="number" id="age" name="age">
+                <input type="number" id="age" name="age" placeholder="Votre âge">
             </div>
 
             <div class="form-group">
                 <label for="ambition">Vos ambitions :</label>
-                <textarea id="ambition" name="ambition" rows="3"></textarea>
+                <textarea id="ambition" name="ambition" rows="3" placeholder="Vos ambitions pour le serveur..."></textarea>
             </div>
 
             <div class="form-group">
                 <label for="motivation">Vos motivations :</label>
-                <textarea id="motivation" name="motivation" rows="4" required></textarea>
+                <textarea id="motivation" name="motivation" rows="4" required placeholder="Pourquoi souhaitez-vous nous rejoindre ?"></textarea>
             </div>
 
             <div class="form-group">
                 <label for="experience">Expériences passées :</label>
-                <textarea id="experience" name="experience" rows="3"></textarea>
+                <textarea id="experience" name="experience" rows="3" placeholder="Vos anciennes expériences en tant que staff/dev..."></textarea>
             </div>
 
             <div class="form-group">
                 <label for="roleModerateur">Vision du rôle :</label>
-                <textarea id="roleModerateur" name="roleModerateur" rows="3"></textarea>
+                <textarea id="roleModerateur" name="roleModerateur" rows="3" placeholder="Comment percevez-vous ce rôle ?"></textarea>
             </div>
 
             <button type="submit" class="btn-submit">Envoyer ma candidature</button>
