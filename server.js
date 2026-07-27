@@ -1,42 +1,12 @@
-const express = require('express');
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const path = require('path');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Configuration du Bot Discord (Assure-toi de mettre ton token et l'ID du salon staff)
-const TOKEN = process.env.DISCORD_TOKEN || 'TON_TOKEN_DE_BOT_DISCORD';
-const STAFF_CHANNEL_ID = process.env.STAFF_CHANNEL_ID || 'ID_DU_SALON_DE_RECRUTEMENT';
-
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMembers
-    ]
-});
-
-// Configuration d'Express
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
-// Routes du site web
-app.get('/', (req, res) => {
-    res.render('index');
-});
-
-app.get('/recrutement', (req, res) => {
-    res.render('recrutement');
-});
-
-// Route de traitement du formulaire de candidature
 app.post('/submit-application', async (req, res) => {
     try {
         const { poste, discordTag, discordId, prenom, age, motivation } = req.body;
+
+        // Vérification de sécurité si le client bot n'est pas prêt
+        if (!client.isReady()) {
+            console.error('Erreur : Le bot Discord n\'est pas encore connecté lors de la soumission.');
+            return res.status(500).send('Erreur interne : Le bot Discord est hors ligne. Réessayez dans quelques instants.');
+        }
 
         let specificFields = [];
 
@@ -70,7 +40,6 @@ app.post('/submit-application', async (req, res) => {
             ];
         }
 
-        // Création de l'embed en mauve (#8b5cf6)
         const embed = new EmbedBuilder()
             .setColor('#8b5cf6')
             .setTitle(`📋 Nouvelle Candidature : ${poste}`)
@@ -87,7 +56,6 @@ app.post('/submit-application', async (req, res) => {
             .setTimestamp()
             .setFooter({ text: 'NewStreet Roleplay - Système de Recrutement' });
 
-        // Création des boutons Accepter / Refuser avec l'ID du joueur injecté
         const row = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
@@ -100,10 +68,9 @@ app.post('/submit-application', async (req, res) => {
                     .setStyle(ButtonStyle.Danger)
             );
 
-        // Récupération du salon staff via le client Discord et envoi du message avec boutons
         const channel = await client.channels.fetch(STAFF_CHANNEL_ID);
         if (!channel) {
-            throw new Error('Salon staff introuvable. Vérifie l\'ID du salon.');
+            throw new Error(`Salon staff introuvable avec l'ID : ${STAFF_CHANNEL_ID}`);
         }
 
         await channel.send({
@@ -111,7 +78,6 @@ app.post('/submit-application', async (req, res) => {
             components: [row]
         });
 
-        // Page de confirmation pour l'utilisateur
         res.send(`
             <!DOCTYPE html>
             <html lang="fr">
@@ -139,63 +105,7 @@ app.post('/submit-application', async (req, res) => {
         `);
 
     } catch (error) {
-        console.error('Erreur lors de l\'envoi de la candidature :', error);
-        res.status(500).send('Une erreur est survenue lors de l\'envoi de votre candidature.');
+        console.error('ERREUR CRITIQUE DANS /submit-application :', error);
+        res.status(500).send(`Erreur serveur : ${error.message}`);
     }
-});
-
-// Écoute des clics sur les boutons (Accepter / Refuser) par le staff
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isButton()) return;
-
-    const [action, candidateDiscordId] = interaction.customId.split('_');
-
-    // Vérification de la permission Administrateur (ou modérateur)
-    if (!interaction.member.permissions.has('Administrator')) {
-        return interaction.reply({ content: 'Tu n\'as pas la permission d\'utiliser ce bouton.', ephemeral: true });
-    }
-
-    try {
-        const candidate = await client.users.fetch(candidateDiscordId);
-
-        if (action === 'accept') {
-            // Envoi du message privé au joueur accepté
-            await candidate.send('🎉 Félicitations ! Ta candidature pour **NewStreet Roleplay** a été **acceptée**. Un membre de l\'équipe va prendre contact avec toi.');
-            
-            // Désactivation des boutons et mise à jour du message staff
-            const disabledRow = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('accepted').setLabel('Accepté ✅').setStyle(ButtonStyle.Success).setDisabled(true),
-                new ButtonBuilder().setCustomId('refused').setLabel('Refuser').setStyle(ButtonStyle.Danger).setDisabled(true)
-            );
-
-            await interaction.update({ content: `Candidature acceptée par ${interaction.user}`, components: [disabledRow] });
-
-        } else if (action === 'refuse') {
-            // Envoi du message privé au joueur refusé
-            await candidate.send('❌ Bonjour, nous le regrettons mais ta candidature pour **NewStreet Roleplay** n\'a pas été retenue pour le moment.');
-
-            // Désactivation des boutons et mise à jour du message staff
-            const disabledRow = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('accepted').setLabel('Accepter').setStyle(ButtonStyle.Success).setDisabled(true),
-                new ButtonBuilder().setCustomId('refused').setLabel('Refusé ❌').setStyle(ButtonStyle.Danger).setDisabled(true)
-            );
-
-            await interaction.update({ content: `Candidature refusée par ${interaction.user}`, components: [disabledRow] });
-        }
-
-    } catch (error) {
-        console.error('Erreur lors du traitement du bouton :', error);
-        await interaction.reply({ content: 'Une erreur est survenue (le joueur a peut-être ses messages privés fermés ou son ID est invalide).', ephemeral: true });
-    }
-});
-
-// Événement de démarrage du bot
-client.once('ready', () => {
-    console.log(`Bot Discord connecté en tant que ${client.user.tag}`);
-});
-
-// Lancement simultané du serveur Express et connexion du Bot
-client.login(TOKEN);
-app.listen(PORT, () => {
-    console.log(`Serveur web démarré sur le port ${PORT}`);
 });
