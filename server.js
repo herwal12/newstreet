@@ -5,7 +5,6 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuration du Bot Discord (on utilise DISCORD_BOT_TOKEN pour correspondre à Render)
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const STAFF_CHANNEL_ID = process.env.STAFF_CHANNEL_ID;
 
@@ -17,14 +16,12 @@ const client = new Client({
     ]
 });
 
-// Configuration d'Express
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Routes du site web
 app.get('/', (req, res) => {
     res.render('index');
 });
@@ -33,7 +30,6 @@ app.get('/recrutement', (req, res) => {
     res.render('recrutement');
 });
 
-// Route de traitement du formulaire de candidature
 app.post('/submit-application', async (req, res) => {
     try {
         const { poste, discordTag, discordId, prenom, age, motivation } = req.body;
@@ -50,52 +46,47 @@ app.post('/submit-application', async (req, res) => {
 
         if (poste === 'Gérant Légal') {
             specificFields = [
-                { name: '📖 Présentation', value: req.body.legal_presentation || 'Non renseigné', inline: false },
-                { name: '💼 Expérience', value: req.body.legal_experience || 'Non renseigné', inline: false },
-                { name: '📈 Gestion & Activité', value: req.body.legal_activity || 'Non renseigné', inline: false }
+                { name: 'Présentation du projet / entreprise légale', value: '```\n' + (req.body.legal_presentation || 'Non renseigné') + '\n```', inline: false },
+                { name: 'Expérience dans le milieu légal', value: '```\n' + (req.body.legal_experience || 'Non renseigné') + '\n```', inline: false },
+                { name: 'Disponibilités et Activité', value: '```\n' + (req.body.legal_activity || 'Non renseigné') + '\n```', inline: false }
             ];
         } else if (poste === 'Gérant Illégal') {
             specificFields = [
-                { name: '📖 Présentation', value: req.body.illegal_presentation || 'Non renseigné', inline: false },
-                { name: '🔪 Expérience', value: req.body.illegal_experience || 'Non renseigné', inline: false },
-                { name: '⚖️ Équilibrage', value: req.body.illegal_balance || 'Non renseigné', inline: false }
+                { name: 'Présentation du projet illégal', value: '```\n' + (req.body.illegal_presentation || 'Non renseigné') + '\n```', inline: false },
+                { name: 'Expérience dans le milieu illégal', value: '```\n' + (req.body.illegal_experience || 'Non renseigné') + '\n```', inline: false },
+                { name: 'Équilibrage / Vision', value: '```\n' + (req.body.illegal_balance || 'Non renseigné') + '\n```', inline: false }
             ];
         } else if (poste === 'Community Manager') {
             specificFields = [
-                { name: '📖 Présentation', value: req.body.cm_presentation || 'Non renseigné', inline: false },
-                { name: '📱 Expérience', value: req.body.cm_experience || 'Non renseigné', inline: false },
-                { name: '💡 Animation', value: req.body.cm_activity || 'Non renseigné', inline: false }
+                { name: 'Présentation', value: '```\n' + (req.body.cm_presentation || 'Non renseigné') + '\n```', inline: false },
+                { name: 'Expérience', value: '```\n' + (req.body.cm_experience || 'Non renseigné') + '\n```', inline: false },
+                { name: 'Animation / Idées', value: '```\n' + (req.body.cm_activity || 'Non renseigné') + '\n```', inline: false }
             ];
         } else if (poste === 'Modération') {
             specificFields = [
-                { name: '🛡️ Mise en situation', value: req.body.sit_1 || 'Non renseigné', inline: false }
+                { name: 'Mise en situation', value: '```\n' + (req.body.sit_1 || 'Non renseigné') + '\n```', inline: false }
             ];
         } else if (poste === 'Développeur') {
             specificFields = [
-                { name: '📖 Présentation', value: req.body.dev_presentation || 'Non renseigné', inline: false },
-                { name: '💻 Langages', value: req.body.dev_languages || 'Non renseigné', inline: false },
-                { name: '⚙️ Frameworks / Compétences', value: req.body.dev_skills || 'Non renseigné', inline: false }
+                { name: 'Présentation', value: '```\n' + (req.body.dev_presentation || 'Non renseigné') + '\n```', inline: false },
+                { name: 'Langages maîtrisés', value: '```\n' + (req.body.dev_languages || 'Non renseigné') + '\n```', inline: false },
+                { name: 'Frameworks / Compétences', value: '```\n' + (req.body.dev_skills || 'Non renseigné') + '\n```', inline: false }
             ];
         }
 
-        // Création de l'embed en mauve (#8b5cf6)
         const embed = new EmbedBuilder()
-            .setColor('#8b5cf6')
-            .setTitle(`📋 Nouvelle Candidature : ${poste}`)
-            .setDescription('Une nouvelle candidature vient d\'être soumise via le site web de NewStreet Roleplay.')
+            .setColor('#8b5cf6') // <-- Couleur mauve demandée
+            .setTitle(`DOSSIER DE CANDIDATURE — ${poste.toUpperCase()}`)
             .addFields(
-                { name: '🏷️ Poste visé', value: poste, inline: false },
-                { name: '👤 Prénom', value: prenom, inline: true },
-                { name: '🎂 Âge', value: `${age} ans`, inline: true },
-                { name: '💬 Tag Discord', value: discordTag, inline: true },
-                { name: '🆔 ID Discord', value: discordId, inline: true },
-                { name: '🎯 Motivations principales', value: motivation, inline: false },
-                ...specificFields
+                { name: 'Identification Discord', value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId}\``, inline: false },
+                { name: 'Informations IRL', value: `• **Prénom :** ${prenom}\n• **Âge :** ${age} ans`, inline: false },
+                { name: 'Motivation', value: '```\n' + motivation + '\n```', inline: false },
+                ...specificFields,
+                { name: 'Statut du Dossier', value: '⏳ **EN ATTENTE DE TRAITEMENT**', inline: false }
             )
-            .setTimestamp()
-            .setFooter({ text: 'NewStreet Roleplay - Système de Recrutement' });
+            .setThumbnail('https://i.imgur.com/8Q9512b.png') // Remplace par ton lien d'image si besoin
+            .setFooter({ text: 'Urgence Lilloise — Système de Recrutement • Made by ymn_Offcl' });
 
-        // Création des boutons Accepter / Refuser
         const row = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
@@ -137,7 +128,7 @@ app.post('/submit-application', async (req, res) => {
             <body>
                 <div class="card">
                     <h2>Candidature envoyée avec succès !</h2>
-                    <p>Ton dossier pour le poste de <strong>${poste}</strong> a bien été transmis à l'équipe de NewStreet Roleplay.</p>
+                    <p>Ton dossier pour le poste de <strong>${poste}</strong> a bien été transmis à l'équipe.</p>
                     <a href="/recrutement">Retourner au site</a>
                 </div>
             </body>
@@ -150,7 +141,6 @@ app.post('/submit-application', async (req, res) => {
     }
 });
 
-// Gestion des clics sur les boutons (Accepter / Refuser)
 client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
 
@@ -164,7 +154,7 @@ client.on('interactionCreate', async interaction => {
         const candidate = await client.users.fetch(candidateDiscordId);
 
         if (action === 'accept') {
-            await candidate.send('🎉 Félicitations ! Ta candidature pour **NewStreet Roleplay** a été **acceptée**. Un membre de l\'équipe va prendre contact avec toi.');
+            await candidate.send('🎉 Félicitations ! Ta candidature a été **acceptée**. Un membre de l\'équipe va prendre contact avec toi.');
             
             const disabledRow = new ActionRowBuilder().addComponents(
                 new ButtonBuilder().setCustomId('accepted').setLabel('Accepté ✅').setStyle(ButtonStyle.Success).setDisabled(true),
@@ -174,7 +164,7 @@ client.on('interactionCreate', async interaction => {
             await interaction.update({ content: `Candidature acceptée par ${interaction.user}`, components: [disabledRow] });
 
         } else if (action === 'refuse') {
-            await candidate.send('❌ Bonjour, nous le regrettons mais ta candidature pour **NewStreet Roleplay** n\'a pas été retenue pour le moment.');
+            await candidate.send('❌ Bonjour, nous le regrettons mais ta candidature n\'a pas été retenue pour le moment.');
 
             const disabledRow = new ActionRowBuilder().addComponents(
                 new ButtonBuilder().setCustomId('accepted').setLabel('Accepter').setStyle(ButtonStyle.Success).setDisabled(true),
@@ -190,21 +180,18 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-// Événement quand le bot est prêt
 client.once('ready', () => {
     console.log(`✅ Bot Discord connecté avec succès en tant que ${client.user.tag}`);
 });
 
-// Connexion du bot
 if (!TOKEN) {
     console.log('⚠️ ATTENTION : DISCORD_BOT_TOKEN est manquant dans les variables d\'environnement Render !');
 } else {
     client.login(TOKEN).catch(err => {
-        console.error('❌ Erreur critique lors de la connexion du bot Discord (Vérifie ton Token) :', err.message);
+        console.error('❌ Erreur critique lors de la connexion du bot Discord :', err.message);
     });
 }
 
-// Lancement du serveur web Express
 app.listen(PORT, () => {
     console.log(`🚀 Serveur web démarré sur le port ${PORT}`);
 });
