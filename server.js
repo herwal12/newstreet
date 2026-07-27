@@ -188,12 +188,16 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-// Connexion du bot et lancement du serveur
-client.once('ready', () => {
-    console.log(`Bot Discord connecté en tant que ${client.user.tag}`);
-});
+// Connexion sécurisée du bot
+if (!TOKEN) {
+    console.log('⚠️ ATTENTION : DISCORD_TOKEN est manquant dans les variables d\'environnement !');
+} else {
+    client.login(TOKEN).catch(err => {
+        console.error('❌ Erreur lors de la connexion du bot Discord :', err.message);
+    });
+}
 
-client.login(TOKEN);
+// Lancement du serveur web Express
 app.listen(PORT, () => {
     console.log(`Serveur web démarré sur le port ${PORT}`);
 });
