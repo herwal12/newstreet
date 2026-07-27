@@ -5,8 +5,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuration du Bot Discord
-const TOKEN = process.env.DISCORD_TOKEN;
+// Configuration du Bot Discord (on utilise DISCORD_BOT_TOKEN pour correspondre à Render)
+const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const STAFF_CHANNEL_ID = process.env.STAFF_CHANNEL_ID;
 
 const client = new Client({
@@ -38,8 +38,9 @@ app.post('/submit-application', async (req, res) => {
     try {
         const { poste, discordTag, discordId, prenom, age, motivation } = req.body;
 
-        console.log(`Tentative d'envoi d'une candidature pour : ${poste} (ID Discord: ${discordId})`);
-        console.log(`État du bot Discord - Connecté : ${client.isReady()}`);
+        if (!TOKEN) {
+            throw new Error('La variable d\'environnement DISCORD_BOT_TOKEN est manquante sur Render.');
+        }
 
         if (!STAFF_CHANNEL_ID) {
             throw new Error('La variable d\'environnement STAFF_CHANNEL_ID est manquante sur Render.');
@@ -128,7 +129,7 @@ app.post('/submit-application', async (req, res) => {
                     body { background: #070913; color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
                     .card { background: rgba(17, 24, 39, 0.8); border: 1px solid rgba(139, 92, 246, 0.4); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); max-width: 500px; }
                     h2 { color: #a78bfa; margin-bottom: 15px; }
-                    <p> { color: #9ca3af; font-size: 14px; margin-bottom: 25px; }
+                    p { color: #9ca3af; font-size: 14px; margin-bottom: 25px; }
                     a { background: #8b5cf6; color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: background 0.3s; }
                     a:hover { background: #7c3aed; }
                 </style>
@@ -196,7 +197,7 @@ client.once('ready', () => {
 
 // Connexion du bot
 if (!TOKEN) {
-    console.log('⚠️ ATTENTION : DISCORD_TOKEN est manquant dans les variables d\'environnement Render !');
+    console.log('⚠️ ATTENTION : DISCORD_BOT_TOKEN est manquant dans les variables d\'environnement Render !');
 } else {
     client.login(TOKEN).catch(err => {
         console.error('❌ Erreur critique lors de la connexion du bot Discord (Vérifie ton Token) :', err.message);
