@@ -27,14 +27,30 @@ app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement')); 
 app.get('/reglement', (req, res) => res.render('reglement')); 
 
-// Traitement des candidatures avec le design exact souhaité
+// Dictionnaire de correspondance pour transformer les noms de champs techniques en vraies questions propres
+const fieldLabels = {
+  motivation: "Motivation",
+  ambitions: "Ambitions",
+  experiences: "Expériences Passées",
+  vision: "Vision du poste",
+  legal_presentation: "Présentation du projet / entreprise légale",
+  legal_experience: "Expérience dans le milieu légal",
+  legal_activity: "Disponibilités et Activité",
+  illegal_presentation: "Présentation du projet illégal",
+  illegal_experience: "Expérience dans le milieu illégal",
+  illegal_activity: "Disponibilités et Activité",
+  moderation_experience: "Expérience en Modération",
+  // Ajoute d'autres correspondances si besoin selon ton formulaire HTML
+};
+
+// Traitement des candidatures
 const handleApplicationSubmission = async (req, res) => {
   try {
     const data = req.body;
     
     const service = data.poste || data.service || "Modération";
     const discordTag = data.discordTag || data.discord || data.pseudo || "Non renseigné";
-    const discordId = data.discordId || '1074640294177415168'; // Fallback ou ID réel si envoyé par le form
+    const discordId = data.discordId || '1074640294177415168';
     const prenom = data.prenom || "Non renseigné";
     const age = data.age || "Non renseigné";
 
@@ -42,7 +58,7 @@ const handleApplicationSubmission = async (req, res) => {
       return res.status(400).json({ error: "Veuillez renseigner votre pseudo Discord." });
     }
 
-    // Construction des champs de l'embed à l'identique de ton modèle
+    // Construction des champs de l'embed
     const fields = [
       {
         name: "Identification Discord",
@@ -56,21 +72,22 @@ const handleApplicationSubmission = async (req, res) => {
       }
     ];
 
-    // Ajout dynamique de toutes les questions du formulaire sous forme de blocs de code
+    // Intégration propre des réponses du formulaire avec de vrais titres lisibles
     for (const [key, value] of Object.entries(data)) {
       if (!['poste', 'service', 'discordTag', 'discord', 'pseudo', 'discordId', 'prenom', 'age'].includes(key) && value) {
-        // Formate joliment le nom de la clé (ex: "ambitions" -> "Ambitions")
-        const formattedTitle = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+        
+        // Utilise le dictionnaire ou nettoie proprement le nom de la variable si elle n'y est pas
+        const cleanTitle = fieldLabels[key] || key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
         
         fields.push({
-          name: formattedTitle,
+          name: cleanTitle,
           value: `\`\`\`\n${String(value).substring(0, 1024)}\n\`\`\``,
           inline: false
         });
       }
     }
 
-    // Ajout du statut "En attente" par défaut pour que l'équipe puisse voir qu'elle est à traiter
+    // Statut par défaut
     fields.push({
       name: "Statut du Dossier",
       value: "⏳ **EN ATTENTE DE TRAITEMENT**",
@@ -80,7 +97,7 @@ const handleApplicationSubmission = async (req, res) => {
     const payload = {
       embeds: [{
         title: `DOSSIER DE CANDIDATURE — ${service.toUpperCase()}`,
-        color: 0x111214, // Couleur sombre type fond embed discord
+        color: 0x111214,
         thumbnail: { url: LOGO_URL },
         fields: fields,
         timestamp: new Date().toISOString(),
@@ -88,7 +105,7 @@ const handleApplicationSubmission = async (req, res) => {
       }]
     };
 
-    // Envoi direct via fetch vers ton Webhook Discord
+    // Envoi vers le Webhook Discord
     const webhookResponse = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -99,7 +116,7 @@ const handleApplicationSubmission = async (req, res) => {
       throw new Error(`Erreur Webhook Discord: ${webhookResponse.statusText}`);
     }
 
-    // Page de succès stylée
+    // Page de succès avec ton texte exact
     return res.send(`
         <!DOCTYPE html>
         <html lang="fr">
@@ -109,17 +126,17 @@ const handleApplicationSubmission = async (req, res) => {
             <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
             <style>
                 body { background: #070913; color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-                .card { background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(139, 92, 246, 0.4); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); }
-                h1 { color: #34d399; margin-bottom: 15px; }
-                p { color: #9ca3af; margin-bottom: 25px; }
-                a { background: #8b5cf6; color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 600; }
+                .card { background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(139, 92, 246, 0.4); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); max-width: 500px; }
+                h1 { color: #34d399; margin-bottom: 15px; font-size: 22px; }
+                p { color: #9ca3af; margin-bottom: 25px; line-height: 1.6; }
+                a { background: #8b5cf6; color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 600; display: inline-block; }
                 a:hover { background: #7c3aed; }
             </style>
         </head>
         <body>
             <div class="card">
-                <h1>Candidature envoyée avec succès !</h1>
-                <p>Ton dossier a bien été transmis à l'équipe sur Discord.</p>
+                <h1>Candidature transmise !</h1>
+                <p>Votre candidature a été transmise a la direction ! Vous serez recontacter dans les plus bref délais.</p>
                 <a href="/recrutement">Retour au site</a>
             </div>
         </body>
