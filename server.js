@@ -27,7 +27,7 @@ app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement')); 
 app.get('/reglement', (req, res) => res.render('reglement')); 
 
-// Dictionnaire de correspondance pour transformer les noms de champs techniques en vraies questions propres
+// Dictionnaire pour les libellés propres des questions du formulaire
 const fieldLabels = {
   motivation: "Motivation",
   ambitions: "Ambitions",
@@ -40,7 +40,6 @@ const fieldLabels = {
   illegal_experience: "Expérience dans le milieu illégal",
   illegal_activity: "Disponibilités et Activité",
   moderation_experience: "Expérience en Modération",
-  // Ajoute d'autres correspondances si besoin selon ton formulaire HTML
 };
 
 // Traitement des candidatures
@@ -50,15 +49,15 @@ const handleApplicationSubmission = async (req, res) => {
     
     const service = data.poste || data.service || "Modération";
     const discordTag = data.discordTag || data.discord || data.pseudo || "Non renseigné";
-    const discordId = data.discordId || '1074640294177415168';
+    const discordId = data.discordId || "Non renseigné"; // Récupéré dynamiquement du formulaire
     const prenom = data.prenom || "Non renseigné";
-    const age = data.age || "Non renseigné";
+    const age = data.age || "Non renseigné"; // Récupéré dynamiquement du formulaire
 
     if (!discordTag || discordTag === "Non renseigné") {
       return res.status(400).json({ error: "Veuillez renseigner votre pseudo Discord." });
     }
 
-    // Construction des champs de l'embed
+    // Construction de l'identification et des infos IRL avec l'ID et l'Âge saisis par l'utilisateur
     const fields = [
       {
         name: "Identification Discord",
@@ -72,11 +71,10 @@ const handleApplicationSubmission = async (req, res) => {
       }
     ];
 
-    // Intégration propre des réponses du formulaire avec de vrais titres lisibles
+    // Intégration des autres réponses spécifiques du formulaire
     for (const [key, value] of Object.entries(data)) {
       if (!['poste', 'service', 'discordTag', 'discord', 'pseudo', 'discordId', 'prenom', 'age'].includes(key) && value) {
         
-        // Utilise le dictionnaire ou nettoie proprement le nom de la variable si elle n'y est pas
         const cleanTitle = fieldLabels[key] || key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
         
         fields.push({
@@ -116,7 +114,7 @@ const handleApplicationSubmission = async (req, res) => {
       throw new Error(`Erreur Webhook Discord: ${webhookResponse.statusText}`);
     }
 
-    // Page de succès avec ton texte exact
+    // Page de succès avec ton message exact
     return res.send(`
         <!DOCTYPE html>
         <html lang="fr">
