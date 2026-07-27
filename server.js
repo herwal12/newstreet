@@ -1,10 +1,46 @@
+const express = require('express');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Configuration du Bot Discord
+const TOKEN = process.env.DISCORD_TOKEN;
+const STAFF_CHANNEL_ID = process.env.STAFF_CHANNEL_ID;
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMembers
+    ]
+});
+
+// Configuration d'Express
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Routes du site web
+app.get('/', (req, res) => {
+    res.render('index');
+});
+
+app.get('/recrutement', (req, res) => {
+    res.render('recrutement');
+});
+
+// Route de traitement du formulaire de candidature
 app.post('/submit-application', async (req, res) => {
     try {
         const { poste, discordTag, discordId, prenom, age, motivation } = req.body;
 
-        // Vérification de sécurité si le client bot n'est pas prêt
+        // Sécurité si le bot n'est pas connecté
         if (!client.isReady()) {
-            console.error('Erreur : Le bot Discord n\'est pas encore connecté lors de la soumission.');
+            console.error('Erreur : Le bot Discord n\'est pas encore connecté.');
             return res.status(500).send('Erreur interne : Le bot Discord est hors ligne. Réessayez dans quelques instants.');
         }
 
@@ -40,6 +76,7 @@ app.post('/submit-application', async (req, res) => {
             ];
         }
 
+        // Création de l'embed en mauve (#8b5cf6)
         const embed = new EmbedBuilder()
             .setColor('#8b5cf6')
             .setTitle(`📋 Nouvelle Candidature : ${poste}`)
@@ -56,6 +93,7 @@ app.post('/submit-application', async (req, res) => {
             .setTimestamp()
             .setFooter({ text: 'NewStreet Roleplay - Système de Recrutement' });
 
+        // Création des boutons Accepter / Refuser
         const row = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
@@ -108,4 +146,54 @@ app.post('/submit-application', async (req, res) => {
         console.error('ERREUR CRITIQUE DANS /submit-application :', error);
         res.status(500).send(`Erreur serveur : ${error.message}`);
     }
+});
+
+// Gestion des clics sur les boutons (Accepter / Refuser)
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isButton()) return;
+
+    const [action, candidateDiscordId] = interaction.customId.split('_');
+
+    if (!interaction.member.permissions.has('Administrator')) {
+        return interaction.reply({ content: 'Tu n\'as pas la permission d\'utiliser ce bouton.', ephemeral: true });
+    }
+
+    try {
+        const candidate = await client.users.fetch(candidateDiscordId);
+
+        if (action === 'accept') {
+            await candidate.send('🎉 Félicitations ! Ta candidature pour **NewStreet Roleplay** a été **acceptée**. Un membre de l\'équipe va prendre contact avec toi.');
+            
+            const disabledRow = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('accepted').setLabel('Accepté ✅').setStyle(ButtonStyle.Success).setDisabled(true),
+                new ButtonBuilder().setCustomId('refused').setLabel('Refuser').setStyle(ButtonStyle.Danger).setDisabled(true)
+            );
+
+            await interaction.update({ content: `Candidature acceptée par ${interaction.user}`, components: [disabledRow] });
+
+        } else if (action === 'refuse') {
+            await candidate.send('❌ Bonjour, nous le regrettons mais ta candidature pour **NewStreet Roleplay** n\'a pas été retenue pour le moment.');
+
+            const disabledRow = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('accepted').setLabel('Accepter').setStyle(ButtonStyle.Success).setDisabled(true),
+                new ButtonBuilder().setCustomId('refused').setLabel('Refusé ❌').setStyle(ButtonStyle.Danger).setDisabled(true)
+            );
+
+            await interaction.update({ content: `Candidature refusée par ${interaction.user}`, components: [disabledRow] });
+        }
+
+    } catch (error) {
+        console.error('Erreur lors du traitement du bouton :', error);
+        await interaction.reply({ content: 'Une erreur est survenue (le joueur a peut-être ses messages privés fermés).', ephemeral: true });
+    }
+});
+
+// Connexion du bot et lancement du serveur
+client.once('ready', () => {
+    console.log(`Bot Discord connecté en tant que ${client.user.tag}`);
+});
+
+client.login(TOKEN);
+app.listen(PORT, () => {
+    console.log(`Serveur web démarré sur le port ${PORT}`);
 });
