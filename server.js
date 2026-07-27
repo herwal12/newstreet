@@ -1,28 +1,34 @@
 const express = require('express');
-const { WebhookClient, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Remplace cette URL par ton Webhook Discord (ou utilise une variable d'environnement)
-const WEBHOOK_URL = process.env.WEBHOOK_URL || 'TON_URL_DE_WEBHOOK_DISCORD';
-const webhookClient = new WebhookClient({ url: WEBHOOK_URL });
+// Configuration du Bot Discord (Assure-toi de mettre ton token et l'ID du salon staff)
+const TOKEN = process.env.DISCORD_TOKEN || 'TON_TOKEN_DE_BOT_DISCORD';
+const STAFF_CHANNEL_ID = process.env.STAFF_CHANNEL_ID || 'ID_DU_SALON_DE_RECRUTEMENT';
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMembers
+    ]
+});
 
 // Configuration d'Express
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Configuration du moteur de template EJS et des fichiers statiques
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Route pour la page d'accueil
+// Routes du site web
 app.get('/', (req, res) => {
-    res.render('index'); // Assure-toi d'avoir ta vue index ou adapte selon ta structure
+    res.render('index');
 });
 
-// Route pour la page de recrutement
 app.get('/recrutement', (req, res) => {
     res.render('recrutement');
 });
@@ -32,7 +38,6 @@ app.post('/submit-application', async (req, res) => {
     try {
         const { poste, discordTag, discordId, prenom, age, motivation } = req.body;
 
-        // Récupération dynamique des questions spécifiques selon le poste
         let specificFields = [];
 
         if (poste === 'Gérant Légal') {
@@ -65,7 +70,7 @@ app.post('/submit-application', async (req, res) => {
             ];
         }
 
-        // Création de l'embed Discord en mauve (#8b5cf6)
+        // Création de l'embed en mauve (#8b5cf6)
         const embed = new EmbedBuilder()
             .setColor('#8b5cf6')
             .setTitle(`📋 Nouvelle Candidature : ${poste}`)
@@ -82,14 +87,31 @@ app.post('/submit-application', async (req, res) => {
             .setTimestamp()
             .setFooter({ text: 'NewStreet Roleplay - Système de Recrutement' });
 
-        // Envoi de l'embed via le Webhook Discord
-        await webhookClient.send({
-            username: 'NewStreet Recrutement',
-            avatarURL: 'https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png',
+        // Création des boutons Accepter / Refuser avec l'ID du joueur injecté
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`accept_${discordId}`)
+                    .setLabel('Accepter')
+                    .setStyle(ButtonStyle.Success),
+                new ButtonBuilder()
+                    .setCustomId(`refuse_${discordId}`)
+                    .setLabel('Refuser')
+                    .setStyle(ButtonStyle.Danger)
+            );
+
+        // Récupération du salon staff via le client Discord et envoi du message avec boutons
+        const channel = await client.channels.fetch(STAFF_CHANNEL_ID);
+        if (!channel) {
+            throw new Error('Salon staff introuvable. Vérifie l\'ID du salon.');
+        }
+
+        await channel.send({
             embeds: [embed],
+            components: [row]
         });
 
-        // Redirection ou réponse de succès
+        // Page de confirmation pour l'utilisateur
         res.send(`
             <!DOCTYPE html>
             <html lang="fr">
@@ -122,7 +144,58 @@ app.post('/submit-application', async (req, res) => {
     }
 });
 
-// Lancement du serveur
+// Écoute des clics sur les boutons (Accepter / Refuser) par le staff
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isButton()) return;
+
+    const [action, candidateDiscordId] = interaction.customId.split('_');
+
+    // Vérification de la permission Administrateur (ou modérateur)
+    if (!interaction.member.permissions.has('Administrator')) {
+        return interaction.reply({ content: 'Tu n\'as pas la permission d\'utiliser ce bouton.', ephemeral: true });
+    }
+
+    try {
+        const candidate = await client.users.fetch(candidateDiscordId);
+
+        if (action === 'accept') {
+            // Envoi du message privé au joueur accepté
+            await candidate.send('🎉 Félicitations ! Ta candidature pour **NewStreet Roleplay** a été **acceptée**. Un membre de l\'équipe va prendre contact avec toi.');
+            
+            // Désactivation des boutons et mise à jour du message staff
+            const disabledRow = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('accepted').setLabel('Accepté ✅').setStyle(ButtonStyle.Success).setDisabled(true),
+                new ButtonBuilder().setCustomId('refused').setLabel('Refuser').setStyle(ButtonStyle.Danger).setDisabled(true)
+            );
+
+            await interaction.update({ content: `Candidature acceptée par ${interaction.user}`, components: [disabledRow] });
+
+        } else if (action === 'refuse') {
+            // Envoi du message privé au joueur refusé
+            await candidate.send('❌ Bonjour, nous le regrettons mais ta candidature pour **NewStreet Roleplay** n\'a pas été retenue pour le moment.');
+
+            // Désactivation des boutons et mise à jour du message staff
+            const disabledRow = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('accepted').setLabel('Accepter').setStyle(ButtonStyle.Success).setDisabled(true),
+                new ButtonBuilder().setCustomId('refused').setLabel('Refusé ❌').setStyle(ButtonStyle.Danger).setDisabled(true)
+            );
+
+            await interaction.update({ content: `Candidature refusée par ${interaction.user}`, components: [disabledRow] });
+        }
+
+    } catch (error) {
+        console.error('Erreur lors du traitement du bouton :', error);
+        await interaction.reply({ content: 'Une erreur est survenue (le joueur a peut-être ses messages privés fermés ou son ID est invalide).', ephemeral: true });
+    }
+});
+
+// Événement de démarrage du bot
+client.once('ready', () => {
+    console.log(`Bot Discord connecté en tant que ${client.user.tag}`);
+});
+
+// Lancement simultané du serveur Express et connexion du Bot
+client.login(TOKEN);
 app.listen(PORT, () => {
-    console.log(`Serveur démarré sur le port ${PORT}`);
+    console.log(`Serveur web démarré sur le port ${PORT}`);
 });
