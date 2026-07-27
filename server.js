@@ -1,5 +1,5 @@
 const express = require('express');
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const path = require('path');
 
 const app = express();
@@ -144,76 +144,73 @@ app.post('/submit-application', async (req, res) => {
 });
 
 client.on('interactionCreate', async interaction => {
-    if (!interaction.isButton()) return;
-
-    const [action, candidateDiscordId] = interaction.customId.split('_');
+    if (!interaction.isButton() && !interaction.isModalSubmit()) return;
 
     if (!interaction.member.permissions.has('Administrator')) {
-        return interaction.reply({ content: 'Tu n\'as pas la permission d\'utiliser ce bouton.', ephemeral: true });
+        return interaction.reply({ content: 'Tu n\'as pas la permission d\'utiliser cette action.', ephemeral: true });
     }
 
-    try {
-        const candidate = await client.users.fetch(candidateDiscordId);
+    // Gestion du clic sur les boutons
+    if (interaction.isButton()) {
+        const [action, candidateDiscordId] = interaction.customId.split('_');
 
         if (action === 'accept') {
-            const acceptEmbed = new EmbedBuilder()
-                .setColor('#8b5cf6')
-                .setThumbnail(LOGO_URL)
-                .addFields(
-                    { name: '🎫 Recrutement', value: 'Votre demande de recrutement vient d\'être revue.' },
-                    { name: '🌐 Statut de la réponse', value: '```\nAcceptée.\n```' },
-                    { name: '🎉 Félicitations !', value: 'Votre candidature a été acceptée !\nIl vous est donc demandé d\'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.' }
-                )
-                .setFooter({ text: 'NewStreet Roleplay — Système de Recrutement • Tous droits réservés' });
+            try {
+                const candidate = await client.users.fetch(candidateDiscordId);
+                const acceptEmbed = new EmbedBuilder()
+                    .setColor('#8b5cf6')
+                    .setThumbnail(LOGO_URL)
+                    .addFields(
+                        { name: '🎫 Recrutement', value: 'Votre demande de recrutement vient d\'être revue.' },
+                        { name: '🌐 Statut de la réponse', value: '```\nAcceptée.\n```' },
+                        { name: '🎉 Félicitations !', value: 'Votre candidature a été acceptée !\nIl vous est donc demandé d\'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.' }
+                    )
+                    .setFooter({ text: 'NewStreet Roleplay — Système de Recrutement • Tous droits réservés' });
 
-            await candidate.send({ embeds: [acceptEmbed] });
-            
-            const disabledRow = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('accepted').setLabel('Accepté ✅').setStyle(ButtonStyle.Success).setDisabled(true),
-                new ButtonBuilder().setCustomId('refused').setLabel('Refuser').setStyle(ButtonStyle.Danger).setDisabled(true)
-            );
+                await candidate.send({ embeds: [acceptEmbed] });
+                
+                const disabledRow = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder().setCustomId('accepted').setLabel('Accepté ✅').setStyle(ButtonStyle.Success).setDisabled(true),
+                    new ButtonBuilder().setCustomId('refused').setLabel('Refuser').setStyle(ButtonStyle.Danger).setDisabled(true)
+                );
 
-            await interaction.update({ content: `Candidature acceptée par ${interaction.user}`, components: [disabledRow] });
+                await interaction.update({ content: `Candidature acceptée par ${interaction.user}`, components: [disabledRow] });
+            } catch (error) {
+                console.error('Erreur acceptation :', error);
+                await interaction.reply({ content: 'Erreur lors de l\'acceptation (le joueur a peut-être ses MP fermés).', ephemeral: true });
+            }
 
         } else if (action === 'refuse') {
-            const refuseEmbed = new EmbedBuilder()
-                .setColor('#8b5cf6')
-                .setThumbnail(LOGO_URL)
-                .addFields(
-                    { name: '🎫 Recrutement', value: 'Votre demande de recrutement vient d\'être revue.' },
-                    { name: '🌐 Statut de la réponse', value: '```\nRefusée.\n```' },
-                    { name: '❌ Désolé', value: 'Bonjour. Nous vous informons que votre candidature pour le staff de **NewStreet Roleplay** n\'a malheureusement **pas été retenue**.\n\nMerci pour l\'intérêt que vous portez à notre serveur.' }
-                )
-                .setFooter({ text: 'NewStreet Roleplay — Système de Recrutement • Tous droits réservés' });
+            // Ouvrir une modale pour demander la raison du refus
+            const modal = new ModalBuilder()
+                .setCustomId(`modal_refuse_${candidateDiscordId}`)
+                .setTitle('Motif du refus de la candidature');
 
-            await candidate.send({ embeds: [refuseEmbed] });
+            const reasonInput = new TextInputBuilder()
+                .setCustomId('refuse_reason')
+                .setLabel('Raison du refus')
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('Expliquez pourquoi la candidature est refusée...')
+                .setRequired(true);
 
-            const disabledRow = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('accepted').setLabel('Accepter').setStyle(ButtonStyle.Success).setDisabled(true),
-                new ButtonBuilder().setCustomId('refused').setLabel('Refusé ❌').setStyle(ButtonStyle.Danger).setDisabled(true)
-            );
-
-            await interaction.update({ content: `Candidature refusée par ${interaction.user}`, components: [disabledRow] });
+            modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+            await interaction.showModal(modal);
         }
-
-    } catch (error) {
-        console.error('Erreur lors du traitement du bouton :', error);
-        await interaction.reply({ content: 'Une erreur est survenue (le joueur a peut-être ses messages privés fermés).', ephemeral: true });
     }
-});
 
-client.once('ready', () => {
-    console.log(`✅ Bot Discord connecté avec succès en tant que ${client.user.tag}`);
-});
+    // Gestion de la soumission de la modale de refus
+    if (interaction.isModalSubmit()) {
+        if (interaction.customId.startsWith('modal_refuse_')) {
+            const candidateDiscordId = interaction.customId.split('_')[2];
+            const reason = interaction.fields.getTextInputValue('refuse_reason');
 
-if (!TOKEN) {
-    console.log('⚠️ ATTENTION : DISCORD_BOT_TOKEN est manquant dans les variables d\'environnement Render !');
-} else {
-    client.login(TOKEN).catch(err => {
-        console.error('❌ Erreur critique lors de la connexion du bot Discord :', err.message);
-    });
-}
-
-app.listen(PORT, () => {
-    console.log(`🚀 Serveur web démarré sur le port ${PORT}`);
-});
+            try {
+                const candidate = await client.users.fetch(candidateDiscordId);
+                
+                const refuseEmbed = new EmbedBuilder()
+                    .setColor('#ef4444') // Rouge pour le refus
+                    .setThumbnail(LOGO_URL)
+                    .addFields(
+                        { name: '🎫 Recrutement', value: 'Votre demande de recrutement vient d\'être revue.' },
+                        { name: '🌐 Statut de la réponse', value: '```\nRefusée.\n```' },
+                        { name: '❌ Motif du refus', value: '```\n' + reason + '\n
