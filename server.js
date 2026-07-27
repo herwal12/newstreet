@@ -37,11 +37,11 @@ app.post('/submit-application', async (req, res) => {
         const { poste, discordTag, discordId, prenom, age, motivation } = req.body;
 
         if (!TOKEN) {
-            throw new Error('La variable d\'environnement DISCORD_BOT_TOKEN est manquante sur Render.');
+            throw new Error("La variable d'environnement DISCORD_BOT_TOKEN est manquante sur Render.");
         }
 
         if (!STAFF_CHANNEL_ID) {
-            throw new Error('La variable d\'environnement STAFF_CHANNEL_ID est manquante sur Render.');
+            throw new Error("La variable d'environnement STAFF_CHANNEL_ID est manquante sur Render.");
         }
 
         let specificFields = [];
