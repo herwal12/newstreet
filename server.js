@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const STAFF_CHANNEL_ID = process.env.STAFF_CHANNEL_ID;
 
-// Ton lien logo fourni
-const LOGO_URL = 'https://media.discordapp.net/attachments/1531037885145550918/1531044475844034660/b6e1646d-f78e-4cdf-bb30-f3cbea3f7b71.png?ex=6a67c7c8&is=6a667648&hm=5f8b76a683be2631f9c5b3ea925ea26ddf5bb1ff8053a2ad61fa13bccb15f6fc&=&format=webp&quality=lossless';
+// ⚠️ METS ICI UN LIEN D'IMAGE PERMANENT (Ex: un lien Imgur ou autre hébergeur stable)
+const LOGO_URL = 'MET_TON_LIEN_PERMANENT_ICI';
 
 const client = new Client({
     intents: [
@@ -73,4 +73,93 @@ app.post('/submit-application', async (req, res) => {
             specificFields = [
                 { name: 'Présentation', value: '```\n' + (req.body.dev_presentation || 'Non renseigné') + '\n```', inline: false },
                 { name: 'Langages maîtrisés', value: '```\n' + (req.body.dev_languages || 'Non renseigné') + '\n```', inline: false },
-                { name: 'Frameworks / Compétences', value: '```\n' + (req.body.dev_skills || 'Non renseigné') + '\n
+                { name: 'Frameworks / Compétences', value: '```\n' + (req.body.dev_skills || 'Non renseigné') + '\n```', inline: false }
+            ];
+        }
+
+        const embed = new EmbedBuilder()
+            .setColor('#8b5cf6')
+            .setTitle(`DOSSIER DE CANDIDATURE — ${poste.toUpperCase()}`)
+            .addFields(
+                { name: 'Identification Discord', value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId}\``, inline: false },
+                { name: 'Informations IRL', value: `• **Prénom :** ${prenom}\n• **Âge :** ${age} ans`, inline: false },
+                { name: 'Motivation', value: '```\n' + motivation + '\n```', inline: false },
+                ...specificFields,
+                { name: 'Statut du Dossier', value: '⏳ **EN ATTENTE DE TRAITEMENT**', inline: false }
+            )
+            .setThumbnail(LOGO_URL)
+            .setFooter({ text: 'NewStreet Roleplay — Système de Recrutement • Made by ymn_Offcl' });
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`accept_${discordId}`)
+                    .setLabel('Accepter')
+                    .setStyle(ButtonStyle.Success),
+                new ButtonBuilder()
+                    .setCustomId(`refuse_${discordId}`)
+                    .setLabel('Refuser')
+                    .setStyle(ButtonStyle.Danger)
+            );
+
+        const channel = await client.channels.fetch(STAFF_CHANNEL_ID);
+        if (!channel) {
+            throw new Error(`Salon staff introuvable avec l'ID : ${STAFF_CHANNEL_ID}`);
+        }
+
+        await channel.send({
+            embeds: [embed],
+            components: [row]
+        });
+
+        res.send(`
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+                <meta charset="UTF-8">
+                <title>Candidature Envoyée</title>
+                <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+                <style>
+                    body { background: #070913; color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+                    .card { background: rgba(17, 24, 39, 0.8); border: 1px solid rgba(139, 92, 246, 0.4); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); max-width: 500px; }
+                    h2 { color: #a78bfa; margin-bottom: 15px; }
+                    p { color: #9ca3af; font-size: 14px; margin-bottom: 25px; }
+                    a { background: #8b5cf6; color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: background 0.3s; }
+                    a:hover { background: #7c3aed; }
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    <h2>Candidature envoyée avec succès !</h2>
+                    <p>Ton dossier pour le poste de <strong>${poste}</strong> a bien été transmis à l'équipe.</p>
+                    <a href="/recrutement">Retourner au site</a>
+                </div>
+            </body>
+            </html>
+        `);
+
+    } catch (error) {
+        console.error('ERREUR CRITIQUE DANS /submit-application :', error);
+        res.status(500).send(`Erreur serveur : ${error.message}`);
+    }
+});
+
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isButton()) return;
+
+    const [action, candidateDiscordId] = interaction.customId.split('_');
+
+    if (!interaction.member.permissions.has('Administrator')) {
+        return interaction.reply({ content: 'Tu n\'as pas la permission d\'utiliser ce bouton.', ephemeral: true });
+    }
+
+    try {
+        const candidate = await client.users.fetch(candidateDiscordId);
+
+        if (action === 'accept') {
+            const acceptEmbed = new EmbedBuilder()
+                .setColor('#8b5cf6')
+                .setThumbnail(LOGO_URL)
+                .addFields(
+                    { name: '🎫 Recrutement', value: 'Votre demande de recrutement vient d\'être revue.' },
+                    { name: '🌐 Statut de la réponse', value: '```\nAcceptée.\n
