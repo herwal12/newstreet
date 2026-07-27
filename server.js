@@ -8,8 +8,7 @@ const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 const STAFF_CHANNEL_ID = process.env.STAFF_CHANNEL_ID;
 
-// ⚠️ METS ICI UN LIEN D'IMAGE PERMANENT (Ex: un lien Imgur ou autre hébergeur stable)
-const LOGO_URL = 'MET_TON_LIEN_PERMANENT_ICI';
+const LOGO_URL = 'https://media.discordapp.net/attachments/1531037885145550918/1531044081747230830/Logo_Fivem_N.png?ex=6a67c76a&is=6a6675ea&hm=692140dcde62bd6e8dad05a69b7a8bb750a15266e7aa4d00749a3830e6ac4ada&=&format=webp&quality=lossless&width=1216&height=1216';
 
 const client = new Client({
     intents: [
@@ -162,4 +161,59 @@ client.on('interactionCreate', async interaction => {
                 .setThumbnail(LOGO_URL)
                 .addFields(
                     { name: '🎫 Recrutement', value: 'Votre demande de recrutement vient d\'être revue.' },
-                    { name: '🌐 Statut de la réponse', value: '```\nAcceptée.\n
+                    { name: '🌐 Statut de la réponse', value: '```\nAcceptée.\n```' },
+                    { name: '🎉 Félicitations !', value: 'Votre candidature a été acceptée !\nIl vous est donc demandé d\'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.' }
+                )
+                .setFooter({ text: 'NewStreet Roleplay — Système de Recrutement • Tous droits réservés' });
+
+            await candidate.send({ embeds: [acceptEmbed] });
+            
+            const disabledRow = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('accepted').setLabel('Accepté ✅').setStyle(ButtonStyle.Success).setDisabled(true),
+                new ButtonBuilder().setCustomId('refused').setLabel('Refuser').setStyle(ButtonStyle.Danger).setDisabled(true)
+            );
+
+            await interaction.update({ content: `Candidature acceptée par ${interaction.user}`, components: [disabledRow] });
+
+        } else if (action === 'refuse') {
+            const refuseEmbed = new EmbedBuilder()
+                .setColor('#8b5cf6')
+                .setThumbnail(LOGO_URL)
+                .addFields(
+                    { name: '🎫 Recrutement', value: 'Votre demande de recrutement vient d\'être revue.' },
+                    { name: '🌐 Statut de la réponse', value: '```\nRefusée.\n```' },
+                    { name: '❌ Désolé', value: 'Bonjour. Nous vous informons que votre candidature pour le staff de **NewStreet Roleplay** n\'a malheureusement **pas été retenue**.\n\nMerci pour l\'intérêt que vous portez à notre serveur.' }
+                )
+                .setFooter({ text: 'NewStreet Roleplay — Système de Recrutement • Tous droits réservés' });
+
+            await candidate.send({ embeds: [refuseEmbed] });
+
+            const disabledRow = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('accepted').setLabel('Accepter').setStyle(ButtonStyle.Success).setDisabled(true),
+                new ButtonBuilder().setCustomId('refused').setLabel('Refusé ❌').setStyle(ButtonStyle.Danger).setDisabled(true)
+            );
+
+            await interaction.update({ content: `Candidature refusée par ${interaction.user}`, components: [disabledRow] });
+        }
+
+    } catch (error) {
+        console.error('Erreur lors du traitement du bouton :', error);
+        await interaction.reply({ content: 'Une erreur est survenue (le joueur a peut-être ses messages privés fermés).', ephemeral: true });
+    }
+});
+
+client.once('ready', () => {
+    console.log(`✅ Bot Discord connecté avec succès en tant que ${client.user.tag}`);
+});
+
+if (!TOKEN) {
+    console.log('⚠️ ATTENTION : DISCORD_BOT_TOKEN est manquant dans les variables d\'environnement Render !');
+} else {
+    client.login(TOKEN).catch(err => {
+        console.error('❌ Erreur critique lors de la connexion du bot Discord :', err.message);
+    });
+}
+
+app.listen(PORT, () => {
+    console.log(`🚀 Serveur web démarré sur le port ${PORT}`);
+});
