@@ -27,13 +27,14 @@ app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement')); 
 app.get('/reglement', (req, res) => res.render('reglement')); 
 
-// Traitement des candidatures directement via le Webhook
+// Traitement des candidatures avec le design exact souhaité
 const handleApplicationSubmission = async (req, res) => {
   try {
     const data = req.body;
     
-    const service = data.poste || data.service || "Général";
+    const service = data.poste || data.service || "Modération";
     const discordTag = data.discordTag || data.discord || data.pseudo || "Non renseigné";
+    const discordId = data.discordId || '1074640294177415168'; // Fallback ou ID réel si envoyé par le form
     const prenom = data.prenom || "Non renseigné";
     const age = data.age || "Non renseigné";
 
@@ -41,31 +42,49 @@ const handleApplicationSubmission = async (req, res) => {
       return res.status(400).json({ error: "Veuillez renseigner votre pseudo Discord." });
     }
 
-    // Création dynamique des champs pour l'Embed du Webhook
+    // Construction des champs de l'embed à l'identique de ton modèle
     const fields = [
-      { name: "👤 Pseudo Discord", value: `\`${discordTag}\``, inline: true },
-      { name: "🏷️ Prénom", value: prenom, inline: true },
-      { name: "🎂 Âge", value: `${age} ans`, inline: true }
+      {
+        name: "Identification Discord",
+        value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId}\``,
+        inline: true
+      },
+      {
+        name: "Informations IRL",
+        value: `• **Prénom :** ${prenom}\n• **Âge :** ${age} ans`,
+        inline: true
+      }
     ];
 
+    // Ajout dynamique de toutes les questions du formulaire sous forme de blocs de code
     for (const [key, value] of Object.entries(data)) {
       if (!['poste', 'service', 'discordTag', 'discord', 'pseudo', 'discordId', 'prenom', 'age'].includes(key) && value) {
+        // Formate joliment le nom de la clé (ex: "ambitions" -> "Ambitions")
+        const formattedTitle = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+        
         fields.push({
-          name: `🔹 ${key.toUpperCase()}`,
-          value: String(value).substring(0, 1024),
+          name: formattedTitle,
+          value: `\`\`\`\n${String(value).substring(0, 1024)}\n\`\`\``,
           inline: false
         });
       }
     }
 
+    // Ajout du statut "En attente" par défaut pour que l'équipe puisse voir qu'elle est à traiter
+    fields.push({
+      name: "Statut du Dossier",
+      value: "⏳ **EN ATTENTE DE TRAITEMENT**",
+      inline: false
+    });
+
     const payload = {
       embeds: [{
-        title: `📄 DOSSIER DE CANDIDATURE — ${service.toUpperCase()}`,
-        color: 0x8b5cf6,
+        title: `DOSSIER DE CANDIDATURE — ${service.toUpperCase()}`,
+        color: 0x111214, // Couleur sombre type fond embed discord
         thumbnail: { url: LOGO_URL },
         fields: fields,
         timestamp: new Date().toISOString(),
-        footer: { text: "Urgence Lilloise — Système de Recrutement" }
+        footer: { text: "Urgence Lilloise — Système de Recrutement • Made by ymn_Offcl" }
       }]
     };
 
@@ -80,7 +99,7 @@ const handleApplicationSubmission = async (req, res) => {
       throw new Error(`Erreur Webhook Discord: ${webhookResponse.statusText}`);
     }
 
-    // Page de succès stylée affichée après l'envoi
+    // Page de succès stylée
     return res.send(`
         <!DOCTYPE html>
         <html lang="fr">
