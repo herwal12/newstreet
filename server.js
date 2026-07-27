@@ -154,30 +154,19 @@ client.on('interactionCreate', async interaction => {
         const [action, candidateDiscordId] = interaction.customId.split('_');
 
         if (action === 'accept') {
-            try {
-                const candidate = await client.users.fetch(candidateDiscordId);
-                const acceptEmbed = new EmbedBuilder()
-                    .setColor('#8b5cf6')
-                    .setThumbnail(LOGO_URL)
-                    .addFields(
-                        { name: '🎫 Recrutement', value: "Votre demande de recrutement vient d'être revue." },
-                        { name: '🌐 Statut de la réponse', value: '```\nAcceptée.\n```' },
-                        { name: '🎉 Félicitations !', value: "Votre candidature a été acceptée !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket." }
-                    )
-                    .setFooter({ text: 'NewStreet Roleplay — Système de Recrutement • Tous droits réservés' });
+            const modal = new ModalBuilder()
+                .setCustomId(`modal_accept_${candidateDiscordId}`)
+                .setTitle('Motif / Message d\'acceptation');
 
-                await candidate.send({ embeds: [acceptEmbed] });
-                
-                const disabledRow = new ActionRowBuilder().addComponents(
-                    new ButtonBuilder().setCustomId('accepted').setLabel('Accepté ✅').setStyle(ButtonStyle.Success).setDisabled(true),
-                    new ButtonBuilder().setCustomId('refused').setLabel('Refuser').setStyle(ButtonStyle.Danger).setDisabled(true)
-                );
+            const reasonInput = new TextInputBuilder()
+                .setCustomId('accept_reason')
+                .setLabel('Message / Consignes pour le candidat')
+                .setStyle(TextInputStyle.Paragraph)
+                .setPlaceholder('Entrez les instructions ou le message d\'acceptation...')
+                .setRequired(true);
 
-                await interaction.update({ content: `Candidature acceptée par ${interaction.user}`, components: [disabledRow] });
-            } catch (error) {
-                console.error('Erreur acceptation :', error);
-                await interaction.reply({ content: "Erreur lors de l'acceptation (le joueur a peut-être ses MP fermés).", ephemeral: true });
-            }
+            modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+            await interaction.showModal(modal);
 
         } else if (action === 'refuse') {
             const modal = new ModalBuilder()
@@ -197,7 +186,56 @@ client.on('interactionCreate', async interaction => {
     }
 
     if (interaction.isModalSubmit()) {
-        if (interaction.customId.startsWith('modal_refuse_')) {
+        if (interaction.customId.startsWith('modal_accept_')) {
+            const candidateDiscordId = interaction.customId.split('_')[2];
+            const reason = interaction.fields.getTextInputValue('accept_reason');
+
+            try {
+                const candidate = await client.users.fetch(candidateDiscordId);
+                
+                const acceptEmbed = new EmbedBuilder()
+                    .setColor('#22c55e')
+                    .setThumbnail(LOGO_URL)
+                    .addFields(
+                        { name: '🎫 Recrutement', value: "Votre demande de recrutement vient d'être revue." },
+                        { name: '🌐 Statut de la réponse', value: '```\nAcceptée.\n```' },
+                        { name: '🎉 Motif / Consignes', value: '```\n' + reason + '\n```' },
+                        { name: '💬 Message', value: "Votre candidature a été acceptée !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket." }
+                    )
+                    .setFooter({ text: 'NewStreet Roleplay — Système de Recrutement • Tous droits réservés' });
+
+                await candidate.send({ embeds: [acceptEmbed] });
+
+                const originalEmbed = interaction.message.embeds[0];
+                const updatedEmbed = EmbedBuilder.from(originalEmbed)
+                    .setColor('#22c55e');
+
+                const fields = updatedEmbed.data.fields.map(field => {
+                    if (field.name === 'Statut du Dossier') {
+                        return { name: '✅ Accepté — Consignes', value: '```\n' + reason + '\n```', inline: false };
+                    }
+                    return field;
+                });
+                updatedEmbed.setFields(fields);
+
+                const disabledRow = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder().setCustomId('accepted').setLabel('Accepté ✅').setStyle(ButtonStyle.Success).setDisabled(true),
+                    new ButtonBuilder().setCustomId('refused').setLabel('Refuser').setStyle(ButtonStyle.Danger).setDisabled(true)
+                );
+
+                await interaction.update({ 
+                    content: `Candidature acceptée par ${interaction.user}`, 
+                    embeds: [updatedEmbed], 
+                    components: [disabledRow] 
+                });
+
+            } catch (error) {
+                console.error('Erreur lors de l\'acceptation avec motif :', error);
+                await interaction.reply({ content: 'Erreur lors du traitement de l\'acceptation (le joueur a peut-être ses MP fermés).', ephemeral: true });
+            }
+        }
+
+        else if (interaction.customId.startsWith('modal_refuse_')) {
             const candidateDiscordId = interaction.customId.split('_')[2];
             const reason = interaction.fields.getTextInputValue('refuse_reason');
 
@@ -242,7 +280,7 @@ client.on('interactionCreate', async interaction => {
 
             } catch (error) {
                 console.error('Erreur lors du refus avec motif :', error);
-                await interaction.reply({ content: "Erreur lors du traitement du refus (le joueur a peut-être ses MP fermés).", ephemeral: true });
+                await interaction.reply({ content: 'Erreur lors du traitement du refus (le joueur a peut-être ses MP fermés).', ephemeral: true });
             }
         }
     }
